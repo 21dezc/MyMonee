@@ -3,6 +3,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
+type Category = {
+  id: string;
+  name: string;
+  type: "INCOME" | "EXPENSE";
+};
+
 export default function EditTransactionPage() {
   const params = useParams();
   const router = useRouter();
@@ -15,14 +21,7 @@ export default function EditTransactionPage() {
   const [date, setDate] = useState("");
   const [categoryId, setCategoryId] = useState("");
 
-  const [categories, setCategories] = useState<
-    {
-      id: string;
-      name: string;
-      type: "INCOME" | "EXPENSE";
-    }[]
-  >([]);
-
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -47,11 +46,13 @@ export default function EditTransactionPage() {
         setType(transactionData.type);
         setAmount(String(transactionData.amount));
         setDescription(transactionData.description || "");
+
         setDate(
           new Date(transactionData.date)
             .toISOString()
             .split("T")[0]
         );
+
         setCategoryId(transactionData.categoryId);
 
         if (categoriesResponse.ok) {
@@ -76,24 +77,29 @@ export default function EditTransactionPage() {
     setSaving(true);
 
     try {
-      const response = await fetch(`/api/transactions/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          amount,
-          type,
-          description,
-          date,
-          categoryId,
-        }),
-      });
+      const response = await fetch(
+        `/api/transactions/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount,
+            type,
+            description,
+            date,
+            categoryId,
+          }),
+        }
+      );
 
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "แก้ไขรายการไม่สำเร็จ");
+        setError(
+          data.error || "แก้ไขรายการไม่สำเร็จ"
+        );
         return;
       }
 
@@ -110,7 +116,9 @@ export default function EditTransactionPage() {
     return (
       <main className="min-h-screen bg-gray-100 p-8">
         <div className="mx-auto max-w-xl">
-          <p className="text-gray-500">กำลังโหลด...</p>
+          <p className="text-gray-500">
+            กำลังโหลด...
+          </p>
         </div>
       </main>
     );
@@ -120,6 +128,7 @@ export default function EditTransactionPage() {
     <main className="min-h-screen bg-gray-100 p-6">
       <div className="mx-auto max-w-xl">
         <div className="rounded-2xl bg-white p-8 shadow">
+
           <h1 className="text-3xl font-bold">
             แก้ไขรายการ
           </h1>
@@ -132,12 +141,15 @@ export default function EditTransactionPage() {
             onSubmit={handleSubmit}
             className="mt-8 space-y-5"
           >
+
+            {/* ประเภท */}
             <div>
               <label className="mb-2 block font-medium">
                 ประเภท
               </label>
 
               <div className="grid grid-cols-2 gap-3">
+
                 <button
                   type="button"
                   onClick={() => {
@@ -167,9 +179,11 @@ export default function EditTransactionPage() {
                 >
                   รายจ่าย
                 </button>
+
               </div>
             </div>
 
+            {/* หมวดหมู่ */}
             <div>
               <label className="mb-2 block font-medium">
                 หมวดหมู่
@@ -189,7 +203,8 @@ export default function EditTransactionPage() {
 
                 {categories
                   .filter(
-                    (category) => category.type === type
+                    (category) =>
+                      category.type === type
                   )
                   .map((category) => (
                     <option
@@ -202,6 +217,7 @@ export default function EditTransactionPage() {
               </select>
             </div>
 
+            {/* จำนวนเงิน */}
             <div>
               <label className="mb-2 block font-medium">
                 จำนวนเงิน
@@ -220,6 +236,7 @@ export default function EditTransactionPage() {
               />
             </div>
 
+            {/* รายละเอียด */}
             <div>
               <label className="mb-2 block font-medium">
                 รายละเอียด
@@ -235,6 +252,7 @@ export default function EditTransactionPage() {
               />
             </div>
 
+            {/* วันที่ */}
             <div>
               <label className="mb-2 block font-medium">
                 วันที่
@@ -250,29 +268,37 @@ export default function EditTransactionPage() {
               />
             </div>
 
+            {/* Error */}
             {error && (
               <p className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
                 {error}
               </p>
             )}
 
+            {/* บันทึก */}
             <button
               type="submit"
               disabled={saving}
               className="w-full rounded-xl bg-black py-3 font-medium text-white disabled:opacity-50"
             >
-              {saving ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}
+              {saving
+                ? "กำลังบันทึก..."
+                : "บันทึกการแก้ไข"}
             </button>
 
+            {/* ยกเลิก */}
             <button
               type="button"
               onClick={() =>
-                router.push("/dashboard/transactions")
+                router.push(
+                  "/dashboard/transactions"
+                )
               }
               className="w-full rounded-xl border py-3 font-medium"
             >
               ยกเลิก
             </button>
+
           </form>
         </div>
       </div>
