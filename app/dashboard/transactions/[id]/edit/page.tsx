@@ -9,71 +9,108 @@ type Category = {
   type: "INCOME" | "EXPENSE";
 };
 
+type Transaction = {
+  id: string;
+  amount: string;
+  type: "INCOME" | "EXPENSE";
+  description: string | null;
+  date: string;
+  categoryId: string;
+};
+
 export default function EditTransactionPage() {
   const params = useParams();
   const router = useRouter();
 
   const id = params.id as string;
 
-  const [type, setType] = useState<"INCOME" | "EXPENSE">("EXPENSE");
-  const [amount, setAmount] = useState("");
-  const [description, setDescription] = useState("");
-  const [date, setDate] = useState("");
-  const [categoryId, setCategoryId] = useState("");
+  const [transaction, setTransaction] =
+    useState<Transaction | null>(null);
 
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<Category[]>(
+    []
+  );
+
+  const [amount, setAmount] = useState("");
+  const [type, setType] = useState<
+    "INCOME" | "EXPENSE"
+  >("EXPENSE");
+  const [description, setDescription] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [date, setDate] = useState("");
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [transactionResponse, categoriesResponse] =
+        const [transactionResponse, categoryResponse] =
           await Promise.all([
             fetch(`/api/transactions/${id}`),
             fetch("/api/categories"),
           ]);
 
-        const transactionData = await transactionResponse.json();
-        const categoriesData = await categoriesResponse.json();
+        const transactionData =
+          await transactionResponse.json();
+
+        const categoryData =
+          await categoryResponse.json();
 
         if (!transactionResponse.ok) {
-          setError(transactionData.error || "ไม่พบรายการ");
+          alert(
+            transactionData.error ||
+              "ไม่พบรายการนี้"
+          );
+
+          router.push("/dashboard/transactions");
           return;
         }
 
+        setTransaction(transactionData);
+
+        setAmount(
+          transactionData.amount.toString()
+        );
+
         setType(transactionData.type);
-        setAmount(String(transactionData.amount));
-        setDescription(transactionData.description || "");
+
+        setDescription(
+          transactionData.description || ""
+        );
+
+        setCategoryId(
+          transactionData.categoryId
+        );
 
         setDate(
           new Date(transactionData.date)
             .toISOString()
-            .split("T")[0]
+            .slice(0, 10)
         );
 
-        setCategoryId(transactionData.categoryId);
-
-        if (categoriesResponse.ok) {
-          setCategories(categoriesData);
-        }
-      } catch {
-        setError("ไม่สามารถโหลดข้อมูลได้");
+        setCategories(categoryData);
+      } catch (error) {
+        console.error(error);
+        alert("ไม่สามารถโหลดข้อมูลได้");
       } finally {
         setLoading(false);
       }
     }
 
     loadData();
-  }, [id]);
+  }, [id, router]);
 
   async function handleSubmit(
-    e: React.FormEvent<HTMLFormElement>
+    event: React.FormEvent<HTMLFormElement>
   ) {
-    e.preventDefault();
+    event.preventDefault();
 
-    setError("");
+    if (!amount || !categoryId) {
+      alert("กรุณากรอกข้อมูลให้ครบ");
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -88,8 +125,8 @@ export default function EditTransactionPage() {
             amount,
             type,
             description,
-            date,
             categoryId,
+            date,
           }),
         }
       );
@@ -97,37 +134,59 @@ export default function EditTransactionPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(
-          data.error || "แก้ไขรายการไม่สำเร็จ"
+        alert(
+          data.error ||
+            "ไม่สามารถแก้ไขรายการได้"
         );
         return;
       }
 
+      alert("แก้ไขรายการสำเร็จ");
+
       router.push("/dashboard/transactions");
       router.refresh();
-    } catch {
-      setError("ไม่สามารถเชื่อมต่อ Server ได้");
+    } catch (error) {
+      console.error(error);
+      alert("เกิดข้อผิดพลาดในการแก้ไขรายการ");
     } finally {
       setSaving(false);
     }
   }
 
+  function handleTypeChange(
+    newType: "INCOME" | "EXPENSE"
+  ) {
+    setType(newType);
+
+    // ล้างหมวดหมู่เดิม เพราะอาจเป็นของอีกประเภท
+    setCategoryId("");
+  }
+
   if (loading) {
     return (
       <main className="min-h-screen bg-gray-100 p-8">
-        <div className="mx-auto max-w-xl">
+        <div className="mx-auto max-w-2xl">
           <p className="text-gray-500">
-            กำลังโหลด...
+            กำลังโหลดข้อมูล...
           </p>
         </div>
       </main>
     );
   }
 
+  if (!transaction) {
+    return null;
+  }
+
+  const filteredCategories = categories.filter(
+    (category) => category.type === type
+  );
+
   return (
-    <main className="min-h-screen bg-gray-100 p-6">
-      <div className="mx-auto max-w-xl">
-        <div className="rounded-2xl bg-white p-8 shadow">
+    <main className="min-h-screen bg-gray-100 p-8">
+      <div className="mx-auto max-w-2xl">
+
+        <div className="rounded-2xl bg-white p-6 shadow">
 
           <h1 className="text-3xl font-bold">
             แก้ไขรายการ
@@ -142,103 +201,52 @@ export default function EditTransactionPage() {
             className="mt-8 space-y-5"
           >
 
-            {/* ประเภท */}
-            <div>
-              <label className="mb-2 block font-medium">
-                ประเภท
-              </label>
-
-              <div className="grid grid-cols-2 gap-3">
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setType("INCOME");
-                    setCategoryId("");
-                  }}
-                  className={`rounded-xl border p-3 ${
-                    type === "INCOME"
-                      ? "bg-green-500 text-white"
-                      : "bg-white"
-                  }`}
-                >
-                  รายรับ
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setType("EXPENSE");
-                    setCategoryId("");
-                  }}
-                  className={`rounded-xl border p-3 ${
-                    type === "EXPENSE"
-                      ? "bg-red-500 text-white"
-                      : "bg-white"
-                  }`}
-                >
-                  รายจ่าย
-                </button>
-
-              </div>
-            </div>
-
-            {/* หมวดหมู่ */}
-            <div>
-              <label className="mb-2 block font-medium">
-                หมวดหมู่
-              </label>
-
-              <select
-                value={categoryId}
-                onChange={(e) =>
-                  setCategoryId(e.target.value)
-                }
-                className="w-full rounded-xl border px-4 py-3"
-                required
-              >
-                <option value="">
-                  เลือกหมวดหมู่
-                </option>
-
-                {categories
-                  .filter(
-                    (category) =>
-                      category.type === type
-                  )
-                  .map((category) => (
-                    <option
-                      key={category.id}
-                      value={category.id}
-                    >
-                      {category.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
-
             {/* จำนวนเงิน */}
             <div>
-              <label className="mb-2 block font-medium">
+              <label className="mb-2 block text-sm font-medium">
                 จำนวนเงิน
               </label>
 
               <input
                 type="number"
-                min="0"
-                step="0.01"
                 value={amount}
                 onChange={(e) =>
                   setAmount(e.target.value)
                 }
                 className="w-full rounded-xl border px-4 py-3"
-                required
               />
+            </div>
+
+            {/* ประเภท */}
+            <div>
+              <label className="mb-2 block text-sm font-medium">
+                ประเภท
+              </label>
+
+              <select
+                value={type}
+                onChange={(e) =>
+                  handleTypeChange(
+                    e.target.value as
+                      | "INCOME"
+                      | "EXPENSE"
+                  )
+                }
+                className="w-full rounded-xl border px-4 py-3"
+              >
+                <option value="INCOME">
+                  รายรับ
+                </option>
+
+                <option value="EXPENSE">
+                  รายจ่าย
+                </option>
+              </select>
             </div>
 
             {/* รายละเอียด */}
             <div>
-              <label className="mb-2 block font-medium">
+              <label className="mb-2 block text-sm font-medium">
                 รายละเอียด
               </label>
 
@@ -252,9 +260,39 @@ export default function EditTransactionPage() {
               />
             </div>
 
+            {/* หมวดหมู่ */}
+            <div>
+              <label className="mb-2 block text-sm font-medium">
+                หมวดหมู่
+              </label>
+
+              <select
+                value={categoryId}
+                onChange={(e) =>
+                  setCategoryId(e.target.value)
+                }
+                className="w-full rounded-xl border px-4 py-3"
+              >
+                <option value="">
+                  เลือกหมวดหมู่
+                </option>
+
+                {filteredCategories.map(
+                  (category) => (
+                    <option
+                      key={category.id}
+                      value={category.id}
+                    >
+                      {category.name}
+                    </option>
+                  )
+                )}
+              </select>
+            </div>
+
             {/* วันที่ */}
             <div>
-              <label className="mb-2 block font-medium">
+              <label className="mb-2 block text-sm font-medium">
                 วันที่
               </label>
 
@@ -268,39 +306,36 @@ export default function EditTransactionPage() {
               />
             </div>
 
-            {/* Error */}
-            {error && (
-              <p className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
-                {error}
-              </p>
-            )}
+            {/* ปุ่ม */}
+            <div className="flex gap-3 pt-3">
 
-            {/* บันทึก */}
-            <button
-              type="submit"
-              disabled={saving}
-              className="w-full rounded-xl bg-black py-3 font-medium text-white disabled:opacity-50"
-            >
-              {saving
-                ? "กำลังบันทึก..."
-                : "บันทึกการแก้ไข"}
-            </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="rounded-xl bg-black px-5 py-3 font-medium text-white hover:opacity-90 disabled:opacity-50"
+              >
+                {saving
+                  ? "กำลังบันทึก..."
+                  : "บันทึกการแก้ไข"}
+              </button>
 
-            {/* ยกเลิก */}
-            <button
-              type="button"
-              onClick={() =>
-                router.push(
-                  "/dashboard/transactions"
-                )
-              }
-              className="w-full rounded-xl border py-3 font-medium"
-            >
-              ยกเลิก
-            </button>
+              <button
+                type="button"
+                onClick={() =>
+                  router.push(
+                    "/dashboard/transactions"
+                  )
+                }
+                className="rounded-xl border px-5 py-3 font-medium hover:bg-gray-100"
+              >
+                ยกเลิก
+              </button>
+
+            </div>
 
           </form>
         </div>
+
       </div>
     </main>
   );

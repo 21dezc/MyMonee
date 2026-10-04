@@ -21,6 +21,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   transactions  Transaction[]
+  budgets       Budget[]
 }
 
 model Account {
@@ -49,6 +50,7 @@ model Category {
   type         TransactionType
   createdAt    DateTime        @default(now())
   transactions Transaction[]
+  budgets Budget[]
 }
 
 model Transaction {
@@ -85,4 +87,21 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Budget {
+  id         String   @id @default(cuid())
+  amount     Decimal  @db.Decimal(12, 2)
+  month      Int
+  year       Int
+  userId     String
+  categoryId String
+
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, categoryId, month, year])
 }

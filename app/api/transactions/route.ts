@@ -2,6 +2,41 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
 
+// ดูรายการทั้งหมดของผู้ใช้
+export async function GET() {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "กรุณาเข้าสู่ระบบก่อน" },
+        { status: 401 }
+      );
+    }
+
+    const transactions = await prisma.transaction.findMany({
+      where: {
+        userId: session.user.id,
+      },
+      include: {
+        category: true,
+      },
+      orderBy: {
+        date: "desc",
+      },
+    });
+
+    return NextResponse.json(transactions);
+  } catch (error) {
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "ไม่สามารถดึงรายการได้" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const session = await auth();
