@@ -37,42 +37,17 @@ export default async function TransactionsPage() {
   );
 
   return (
-    <main className="min-h-screen bg-gray-100 p-8">
-      <div className="mx-auto max-w-6xl">
+    <main className="pb-10">
+      <h1 className="text-2xl font-semibold">รายการทั้งหมด</h1>
 
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">
-              รายการทั้งหมด
-            </h1>
+      <p className="mt-1 text-xs text-muted">
+        รายรับและรายจ่ายทั้งหมดของคุณ
+      </p>
 
-            <p className="mt-2 text-gray-500">
-              รายรับและรายจ่ายทั้งหมดของคุณ
-            </p>
-          </div>
-
-          <a
-            href="/dashboard/add"
-            className="rounded-xl bg-black px-5 py-3 font-medium text-white hover:opacity-90"
-          >
-            + เพิ่มรายการ
-          </a>
-        </div>
-
-        <div className="mt-8 rounded-2xl bg-white p-6 shadow">
-          <TransactionList
-            transactions={formattedTransactions}
-            categories={categories}
-          />
-        </div>
-
-        <div className="mt-6 flex items-center gap-3">
-
-       
-
-      </div>
-
-      </div>
+      <TransactionList
+        transactions={formattedTransactions}
+        categories={categories}
+      />
     </main>
   );
 }

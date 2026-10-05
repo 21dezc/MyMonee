@@ -7,7 +7,7 @@ export default function LogoutButton() {
     <button
       type="button"
       onClick={() => signOut({ callbackUrl: "/login" })}
-      className="rounded-xl bg-red-500 px-5 py-3 font-medium text-white hover:bg-red-600"
+      className="rounded-xl border border-expense px-5 py-3 font-medium text-expense hover:bg-expense/10"
     >
       ออกจากระบบ
     </button>

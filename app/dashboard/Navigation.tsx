@@ -3,35 +3,22 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+const links = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/dashboard/transactions", label: "รายการ" },
+  { href: "/dashboard/add", label: "+ เพิ่มรายการ" },
+  { href: "/dashboard/budget", label: "งบประมาณ" },
+];
+
 export default function Navigation() {
   const pathname = usePathname();
-
-  const links = [
-    {
-      href: "/dashboard",
-      label: "🏠 Dashboard",
-    },
-    {
-      href: "/dashboard/transactions",
-      label: "📝 รายการ",
-    },
-    {
-      href: "/dashboard/add",
-      label: "＋ เพิ่มรายการ",
-    },
-    {
-      href: "/dashboard/budget",
-      label: "🎯 งบประมาณ",
-    },
-    {
-      href: "/dashboard/profile",
-      label: "👤 โปรไฟล์",
-    },
-  ];
+  const profileActive = pathname === "/dashboard/profile";
 
   return (
-    <nav className="mb-8 rounded-[28px] border border-[#252525] bg-[#0d0d0d] p-2">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:flex md:flex-wrap">
+    <nav className="mb-10 flex items-center justify-between gap-3">
+      <div className="flex-1" />
+
+      <div className="flex max-w-full gap-1 overflow-x-auto rounded-full border border-nav p-1">
         {links.map((link) => {
           const isActive = pathname === link.href;
 
@@ -39,16 +26,28 @@ export default function Navigation() {
             <Link
               key={link.href}
               href={link.href}
-              className={`rounded-[20px] px-4 py-3 text-center text-sm font-medium transition-all duration-200 ${
+              className={`whitespace-nowrap rounded-full px-4 py-1.5 text-sm transition-colors ${
                 isActive
-                  ? "bg-white text-black"
-                  : "text-[#a3a3a3] hover:bg-[#1a1a1a] hover:text-white"
+                  ? "bg-line text-ink"
+                  : "text-muted hover:text-ink"
               }`}
             >
               {link.label}
             </Link>
           );
         })}
+      </div>
+
+      <div className="flex flex-1 justify-end">
+        <Link
+          href="/dashboard/profile"
+          aria-label="โปรไฟล์"
+          className={`h-9 w-9 rounded-full border transition-colors ${
+            profileActive
+              ? "border-ink bg-nav"
+              : "border-line bg-line hover:bg-nav"
+          }`}
+        />
       </div>
     </nav>
   );

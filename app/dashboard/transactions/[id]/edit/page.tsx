@@ -164,9 +164,9 @@ export default function EditTransactionPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gray-100 p-8">
+      <main className="pb-10">
         <div className="mx-auto max-w-2xl">
-          <p className="text-gray-500">
+          <p className="text-muted">
             กำลังโหลดข้อมูล...
           </p>
         </div>
@@ -183,16 +183,16 @@ export default function EditTransactionPage() {
   );
 
   return (
-    <main className="min-h-screen bg-gray-100 p-8">
+    <main className="pb-10">
       <div className="mx-auto max-w-2xl">
 
-        <div className="rounded-2xl bg-white p-6 shadow">
+        <div className="card p-6">
 
-          <h1 className="text-3xl font-bold">
+          <h1 className="text-2xl font-semibold">
             แก้ไขรายการ
           </h1>
 
-          <p className="mt-2 text-gray-500">
+          <p className="mt-1 text-xs text-muted">
             แก้ไขข้อมูลรายรับหรือรายจ่าย
           </p>
 
@@ -203,7 +203,7 @@ export default function EditTransactionPage() {
 
             {/* จำนวนเงิน */}
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label className="label">
                 จำนวนเงิน
               </label>
 
@@ -213,13 +213,13 @@ export default function EditTransactionPage() {
                 onChange={(e) =>
                   setAmount(e.target.value)
                 }
-                className="w-full rounded-xl border px-4 py-3"
+                className="field"
               />
             </div>
 
             {/* ประเภท */}
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label className="label">
                 ประเภท
               </label>
 
@@ -232,7 +232,7 @@ export default function EditTransactionPage() {
                       | "EXPENSE"
                   )
                 }
-                className="w-full rounded-xl border px-4 py-3"
+                className="field"
               >
                 <option value="INCOME">
                   รายรับ
@@ -246,7 +246,7 @@ export default function EditTransactionPage() {
 
             {/* รายละเอียด */}
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label className="label">
                 รายละเอียด
               </label>
 
@@ -256,13 +256,13 @@ export default function EditTransactionPage() {
                 onChange={(e) =>
                   setDescription(e.target.value)
                 }
-                className="w-full rounded-xl border px-4 py-3"
+                className="field"
               />
             </div>
 
             {/* หมวดหมู่ */}
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label className="label">
                 หมวดหมู่
               </label>
 
@@ -271,7 +271,7 @@ export default function EditTransactionPage() {
                 onChange={(e) =>
                   setCategoryId(e.target.value)
                 }
-                className="w-full rounded-xl border px-4 py-3"
+                className="field"
               >
                 <option value="">
                   เลือกหมวดหมู่
@@ -292,7 +292,7 @@ export default function EditTransactionPage() {
 
             {/* วันที่ */}
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label className="label">
                 วันที่
               </label>
 
@@ -302,7 +302,7 @@ export default function EditTransactionPage() {
                 onChange={(e) =>
                   setDate(e.target.value)
                 }
-                className="w-full rounded-xl border px-4 py-3"
+                className="field"
               />
             </div>
 
@@ -312,7 +312,7 @@ export default function EditTransactionPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="rounded-xl bg-black px-5 py-3 font-medium text-white hover:opacity-90 disabled:opacity-50"
+                className="btn-primary"
               >
                 {saving
                   ? "กำลังบันทึก..."
@@ -326,7 +326,7 @@ export default function EditTransactionPage() {
                     "/dashboard/transactions"
                   )
                 }
-                className="rounded-xl border px-5 py-3 font-medium hover:bg-gray-100"
+                className="btn-ghost"
               >
                 ยกเลิก
               </button>

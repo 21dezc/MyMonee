@@ -136,204 +136,159 @@ export default async function DashboardPage() {
     }))
     .sort((a, b) => b.value - a.value);
 
+  const money = (value: number) =>
+    value.toLocaleString("th-TH", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
   return (
     <main>
-      
+      {/* Header */}
+      <h1 className="text-2xl font-semibold">
+        สวัสดี {session.user.name || "ผู้ใช้งาน"} 👋
+      </h1>
+      <p className="mt-1 text-sm text-muted">ยินดีต้อนรับเข้าสู่ MyMonee</p>
 
-        {/* Header */}
-        <h1 className="text-3xl font-bold">
-          สวัสดี {session.user.name || "ผู้ใช้งาน"} 👋
-        </h1>
+      {/* Summary */}
+      <div className="mt-6 grid gap-3 md:grid-cols-3">
+        <div className="card p-5">
+          <p className="text-xs text-muted">ยอดเงินคงเหลือ</p>
+          <p className="mt-2 text-2xl font-semibold">฿{money(balance)}</p>
+        </div>
 
-        <p className="mt-2 text-gray-500">ยินดีต้อนรับเข้าสู่ MyMonee</p>
+        <div className="card p-5">
+          <p className="text-xs text-muted">รายรับทั้งหมด</p>
+          <p className="mt-2 text-2xl font-semibold text-income">
+            ฿{money(income)}
+          </p>
+        </div>
 
-        {/* Summary */}
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
-          {/* Balance */}
-          <div className="rounded-2xl bg-white p-6 shadow">
-            <p className="text-sm text-gray-500">ยอดเงินคงเหลือ</p>
+        <div className="card p-5">
+          <p className="text-xs text-muted">รายจ่ายทั้งหมด</p>
+          <p className="mt-2 text-2xl font-semibold text-expense">
+            ฿{money(expense)}
+          </p>
+        </div>
+      </div>
 
-            <p className="mt-2 text-3xl font-bold">
-              ฿
-              {balance.toLocaleString("th-TH", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+      <div className="mt-4">
+        <a
+          href="/dashboard/add"
+          className="btn-ghost !rounded-full !px-4 !py-1.5 text-sm"
+        >
+          + เพิ่มรายการ
+        </a>
+      </div>
+
+      {/* Chart */}
+      {chartData.length > 0 && (
+        <DashboardCharts data={chartData} categoryData={categoryData} />
+      )}
+
+      {/* สรุปเดือนนี้ */}
+      <section className="card mt-10 p-6">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold">สรุปเดือนนี้</h2>
+            <p className="mt-1 text-xs text-muted">
+              ภาพรวมรายรับและรายจ่ายของเดือนปัจจุบัน
             </p>
           </div>
 
-          {/* Income */}
-          <div className="rounded-2xl bg-white p-6 shadow">
-            <p className="text-sm text-gray-500">รายรับทั้งหมด</p>
+          <span className="rounded-full bg-line px-3 py-1 text-xs text-ink">
+            {now.toLocaleDateString("th-TH", {
+              month: "long",
+              year: "numeric",
+            })}
+          </span>
+        </div>
 
-            <p className="mt-2 text-3xl font-bold text-green-600">
-              ฿
-              {income.toLocaleString("th-TH", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+        <div className="mt-5 grid gap-3 md:grid-cols-3">
+          <div className="rounded-2xl bg-line p-4">
+            <p className="text-xs text-muted">รายรับเดือนนี้</p>
+            <p className="mt-2 text-xl font-semibold text-income">
+              ฿{money(monthlyIncome)}
             </p>
           </div>
 
-          {/* Expense */}
-          <div className="rounded-2xl bg-white p-6 shadow">
-            <p className="text-sm text-gray-500">รายจ่ายทั้งหมด</p>
+          <div className="rounded-2xl bg-line p-4">
+            <p className="text-xs text-muted">รายจ่ายเดือนนี้</p>
+            <p className="mt-2 text-xl font-semibold text-expense">
+              ฿{money(monthlyExpense)}
+            </p>
+          </div>
 
-            <p className="mt-2 text-3xl font-bold text-red-500">
-              ฿
-              {expense.toLocaleString("th-TH", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+          <div className="rounded-2xl bg-line p-4">
+            <p className="text-xs text-muted">คงเหลือเดือนนี้</p>
+            <p className="mt-2 text-xl font-semibold">
+              ฿{money(monthlyBalance)}
             </p>
           </div>
         </div>
 
-        {/* Add transaction */}
+        {/* Progress */}
         <div className="mt-6">
+          <div className="mb-2 flex justify-between text-xs">
+            <span className="text-muted">สัดส่วนรายจ่ายต่อรายรับ</span>
+            <span className="text-muted">{expensePercentage.toFixed(1)}%</span>
+          </div>
+
+          <div className="h-2 overflow-hidden rounded-full bg-line">
+            <div
+              className="h-full rounded-full bg-expense transition-all"
+              style={{ width: `${Math.min(expensePercentage, 100)}%` }}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Recent transactions */}
+      <section className="mt-10 px-1">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">รายการล่าสุด</h2>
+
           <a
-            href="/dashboard/add"
-            className="inline-block rounded-xl bg-black px-6 py-3 font-medium text-white hover:opacity-90"
+            href="/dashboard/transactions"
+            className="text-sm text-muted hover:text-ink"
           >
-            + เพิ่มรายการ
+            ดูทั้งหมด →
           </a>
         </div>
 
-        {/* Chart */}
-        {chartData.length > 0 && (
-          <DashboardCharts data={chartData} categoryData={categoryData} />
-        )}
-
-        {/* สรุปเดือนนี้ */}
-        <div className="mt-8 rounded-2xl bg-white p-6 shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold">สรุปเดือนนี้</h2>
-
-              <p className="mt-1 text-sm text-gray-500">
-                ภาพรวมรายรับและรายจ่ายของเดือนปัจจุบัน
-              </p>
-            </div>
-
-            <span className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
-              {now.toLocaleDateString("th-TH", {
-                month: "long",
-                year: "numeric",
-              })}
-            </span>
-          </div>
-
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {/* รายรับ */}
-            <div className="rounded-xl bg-green-50 p-5">
-              <p className="text-sm text-gray-500">รายรับเดือนนี้</p>
-
-              <p className="mt-2 text-2xl font-bold text-green-600">
-                ฿
-                {monthlyIncome.toLocaleString("th-TH", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </p>
-            </div>
-
-            {/* รายจ่าย */}
-            <div className="rounded-xl bg-red-50 p-5">
-              <p className="text-sm text-gray-500">รายจ่ายเดือนนี้</p>
-
-              <p className="mt-2 text-2xl font-bold text-red-500">
-                ฿
-                {monthlyExpense.toLocaleString("th-TH", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </p>
-            </div>
-
-            {/* คงเหลือ */}
-            <div className="rounded-xl bg-blue-50 p-5">
-              <p className="text-sm text-gray-500">คงเหลือเดือนนี้</p>
-
-              <p className="mt-2 text-2xl font-bold text-blue-600">
-                ฿
-                {monthlyBalance.toLocaleString("th-TH", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </p>
-            </div>
-          </div>
-
-          {/* Progress */}
-          <div className="mt-6">
-            <div className="mb-2 flex justify-between text-sm">
-              <span className="text-gray-500">สัดส่วนรายจ่ายต่อรายรับ</span>
-
-              <span className="font-medium">{expensePercentage.toFixed(1)}%</span>
-            </div>
-
-            <div className="h-3 overflow-hidden rounded-full bg-gray-100">
+        <div className="mt-3">
+          {transactions.length === 0 ? (
+            <p className="py-8 text-center text-faint">ยังไม่มีรายการ</p>
+          ) : (
+            transactions.slice(0, 5).map((transaction) => (
               <div
-                className="h-full rounded-full bg-red-400 transition-all"
-                style={{
-                  width: `${Math.min(expensePercentage, 100)}%`,
-                }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Recent transactions */}
-        <div className="mt-8 rounded-2xl bg-white p-6 shadow">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold">รายการล่าสุด</h2>
-
-            <a
-              href="/dashboard/transactions"
-              className="text-sm font-medium text-blue-600 hover:underline"
-            >
-              ดูทั้งหมด →
-            </a>
-          </div>
-
-          <div className="mt-5 space-y-3">
-            {transactions.length === 0 ? (
-              <p className="py-8 text-center text-gray-400">ยังไม่มีรายการ</p>
-            ) : (
-              transactions.slice(0, 5).map((transaction) => (
-                <div
-                  key={transaction.id}
-                  className="flex items-center justify-between rounded-xl border p-4"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {transaction.description || "ไม่มีรายละเอียด"}
-                    </p>
-
-                    <p className="mt-1 text-sm text-gray-400">
-                      {new Date(transaction.date).toLocaleDateString("th-TH")}
-                    </p>
-                  </div>
-
-                  <p
-                    className={`font-bold ${
-                      transaction.type === "INCOME"
-                        ? "text-green-600"
-                        : "text-red-500"
-                    }`}
-                  >
-                    {transaction.type === "INCOME" ? "+" : "-"}฿
-                    {Number(transaction.amount).toLocaleString("th-TH", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
+                key={transaction.id}
+                className="flex items-center justify-between border-b border-line py-4 last:border-b-0"
+              >
+                <div>
+                  <p className="text-sm">
+                    {transaction.description || "ไม่มีรายละเอียด"}
+                  </p>
+                  <p className="mt-0.5 text-xs text-faint">
+                    {new Date(transaction.date).toLocaleDateString("th-TH")}
                   </p>
                 </div>
-              ))
-            )}
-          </div>
+
+                <p
+                  className={`text-sm font-medium ${
+                    transaction.type === "INCOME"
+                      ? "text-income"
+                      : "text-expense"
+                  }`}
+                >
+                  {transaction.type === "INCOME" ? "+" : "-"}฿
+                  {money(Number(transaction.amount))}
+                </p>
+              </div>
+            ))
+          )}
         </div>
-      
+      </section>
     </main>
   );
 }

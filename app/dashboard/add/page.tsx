@@ -74,14 +74,14 @@ export default function AddTransactionPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 p-6">
+    <main className="pb-10">
       <div className="mx-auto max-w-xl">
-        <div className="rounded-2xl bg-white p-8 shadow">
-          <h1 className="text-3xl font-bold">
+        <div className="card p-8">
+          <h1 className="text-2xl font-semibold">
             เพิ่มรายการ
           </h1>
 
-          <p className="mt-2 text-gray-500">
+          <p className="mt-1 text-xs text-muted">
             บันทึกรายรับหรือรายจ่ายของคุณ
           </p>
 
@@ -89,7 +89,7 @@ export default function AddTransactionPage() {
 
             {/* ประเภท */}
             <div>
-              <label className="mb-2 block font-medium">
+              <label className="label">
                 ประเภท
               </label>
 
@@ -100,10 +100,10 @@ export default function AddTransactionPage() {
                     setType("INCOME");
                     setCategoryId("");
                   }}
-                  className={`rounded-xl border p-3 ${
+                  className={`rounded-xl border border-nav p-3 transition-colors ${
                     type === "INCOME"
-                      ? "bg-green-500 text-white"
-                      : "bg-white"
+                      ? "border-income bg-income text-ink"
+                      : "bg-paper text-muted"
                   }`}
                 >
                   รายรับ
@@ -115,10 +115,10 @@ export default function AddTransactionPage() {
                     setType("EXPENSE");
                     setCategoryId("");
                   }}
-                  className={`rounded-xl border p-3 ${
+                  className={`rounded-xl border border-nav p-3 transition-colors ${
                     type === "EXPENSE"
-                      ? "bg-red-500 text-white"
-                      : "bg-white"
+                      ? "border-expense bg-expense text-white"
+                      : "bg-paper text-muted"
                   }`}
                 >
                   รายจ่าย
@@ -128,14 +128,14 @@ export default function AddTransactionPage() {
 
             {/* หมวดหมู่ */}
             <div>
-              <label className="mb-2 block font-medium">
+              <label className="label">
                 หมวดหมู่
               </label>
 
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full rounded-xl border px-4 py-3 outline-none focus:ring-2"
+                className="field"
                 required
               >
                 <option value="">
@@ -154,7 +154,7 @@ export default function AddTransactionPage() {
 
             {/* จำนวนเงิน */}
             <div>
-              <label className="mb-2 block font-medium">
+              <label className="label">
                 จำนวนเงิน
               </label>
 
@@ -165,14 +165,14 @@ export default function AddTransactionPage() {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-full rounded-xl border px-4 py-3 outline-none focus:ring-2"
+                className="field"
                 required
               />
             </div>
 
             {/* รายละเอียด */}
             <div>
-              <label className="mb-2 block font-medium">
+              <label className="label">
                 รายละเอียด
               </label>
 
@@ -181,13 +181,13 @@ export default function AddTransactionPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="เช่น ค่าอาหารกลางวัน"
-                className="w-full rounded-xl border px-4 py-3 outline-none focus:ring-2"
+                className="field"
               />
             </div>
 
             {/* วันที่ */}
             <div>
-              <label className="mb-2 block font-medium">
+              <label className="label">
                 วันที่
               </label>
 
@@ -195,13 +195,13 @@ export default function AddTransactionPage() {
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full rounded-xl border px-4 py-3 outline-none focus:ring-2"
+                className="field"
               />
             </div>
 
             {/* Error */}
             {error && (
-              <p className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+              <p className="rounded-xl bg-expense/10 p-3 text-sm text-expense">
                 {error}
               </p>
             )}
@@ -210,7 +210,7 @@ export default function AddTransactionPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-black py-3 font-medium text-white hover:opacity-90 disabled:opacity-50"
+              className="btn-primary w-full"
             >
               {loading ? "กำลังบันทึก..." : "บันทึกรายการ"}
             </button>
@@ -219,7 +219,7 @@ export default function AddTransactionPage() {
             <button
               type="button"
               onClick={() => router.push("/dashboard")}
-              className="w-full rounded-xl border py-3 font-medium"
+              className="btn-ghost w-full"
             >
               ยกเลิก
             </button>

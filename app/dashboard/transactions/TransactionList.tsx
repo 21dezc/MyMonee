@@ -99,30 +99,30 @@ export default function TransactionList({
       />
 
       <div className="mt-6">
-        <p className="mb-4 text-sm text-gray-500">
+        <p className="mb-2 text-xs text-muted">
           แสดง {filteredTransactions.length} รายการ
           จาก {transactions.length} รายการ
         </p>
 
         {filteredTransactions.length === 0 ? (
-          <p className="py-10 text-center text-gray-400">
+          <p className="py-10 text-center text-faint">
             ไม่พบรายการที่ค้นหา
           </p>
         ) : (
-          <div className="space-y-3">
+          <div>
             {filteredTransactions.map(
               (transaction) => (
                 <div
                   key={transaction.id}
-                  className="flex items-center justify-between rounded-xl border p-4"
+                  className="flex items-center justify-between gap-3 border-b border-line py-4 last:border-b-0"
                 >
                   <div>
-                    <p className="font-medium">
+                    <p className="text-sm">
                       {transaction.description ||
                         "ไม่มีรายละเอียด"}
                     </p>
 
-                    <div className="mt-1 flex gap-2 text-sm text-gray-400">
+                    <div className="mt-0.5 flex gap-2 text-xs text-faint">
                       <span>
                         {transaction.category.name}
                       </span>
@@ -141,11 +141,11 @@ export default function TransactionList({
 
                   <div className="flex items-center gap-4">
                     <p
-                      className={`font-bold ${
+                      className={`text-sm font-medium ${
                         transaction.type ===
                         "INCOME"
-                          ? "text-green-600"
-                          : "text-red-500"
+                          ? "text-income"
+                          : "text-expense"
                       }`}
                     >
                       {transaction.type ===
@@ -166,7 +166,7 @@ export default function TransactionList({
 
                     <a
                       href={`/dashboard/transactions/${transaction.id}/edit`}
-                      className="rounded-lg border px-3 py-2 text-sm font-medium hover:bg-gray-100"
+                      className="chip chip-info"
                     >
                       แก้ไข
                     </a>

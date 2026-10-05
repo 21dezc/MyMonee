@@ -10,16 +10,16 @@ export default async function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 p-8">
+    <main className="pb-10">
       <div className="mx-auto max-w-4xl">
 
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">
-              👤 โปรไฟล์
+            <h1 className="text-2xl font-semibold">
+              โปรไฟล์
             </h1>
 
-            <p className="mt-2 text-gray-500">
+            <p className="mt-1 text-xs text-muted">
               ข้อมูลบัญชีของคุณ
             </p>
           </div>
@@ -27,16 +27,16 @@ export default async function ProfilePage() {
           
         </div>
 
-        <div className="mt-8 rounded-2xl bg-white p-6 shadow">
+        <div className="mt-8 card p-6">
 
-          <h2 className="text-xl font-bold">
+          <h2 className="text-lg font-semibold">
             ข้อมูลบัญชี
           </h2>
 
           <div className="mt-6 space-y-4">
 
             <div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted">
                 ชื่อผู้ใช้
               </p>
 
@@ -46,7 +46,7 @@ export default async function ProfilePage() {
             </div>
 
             <div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted">
                 อีเมล
               </p>
 
@@ -54,7 +54,7 @@ export default async function ProfilePage() {
                 {session.user.email || "ยังไม่มีข้อมูล"}
               </p>
             </div>
-            <div className="mt-8 border-t pt-6">
+            <div className="mt-8 border-t border-line pt-6">
                 <LogoutButton />
             </div>
 

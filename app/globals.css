@@ -1,8 +1,16 @@
 @import "tailwindcss";
 
-:root {
-  --background: #000000;
-  --foreground: #f5f5f5;
+/* สีทั้งแอปอยู่ตรงนี้ที่เดียว แก้ที่นี่ แล้วทุกหน้าเปลี่ยนตาม */
+@theme {
+  --color-paper: #f8f8f8;     /* พื้นหลัง */
+  --color-line: #eeeeee;      /* กรอบมนๆ / พื้นกล่องย่อย */
+  --color-nav: #dbdbdb;       /* กรอบ top bar */
+  --color-ink: #494947;       /* ตัวหนังสือ */
+  --color-muted: #7a7879;     /* ตัวหนังสืออ่อน */
+  --color-faint: #b6b6b2;     /* อ่อนลงอีก */
+  --color-expense: #d36f6f;   /* แดง */
+  --color-income: #9dd573;    /* เขียว */
+  --color-info: #73a7d5;      /* ฟ้า */
 }
 
 * {
@@ -12,13 +20,14 @@
 html,
 body {
   min-height: 100%;
-  background: #000000;
-  color: #f5f5f5;
+  background: var(--color-paper);
+  color: var(--color-ink);
 }
 
 body {
   margin: 0;
   font-family: var(--font-noto-sans-thai), sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 button,
@@ -35,4 +44,98 @@ button {
 
 a {
   text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-info);
+  outline-offset: 2px;
+}
+
+/* ===== ส่วนประกอบที่ใช้ซ้ำทั้งแอป ===== */
+.card {
+  background: var(--color-paper);
+  border: 1px solid var(--color-nav);
+  border-radius: 1.5rem;
+}
+
+.field {
+  width: 100%;
+  background: var(--color-paper);
+  border: 1px solid var(--color-nav);
+  border-radius: 0.875rem;
+  padding: 0.65rem 1rem;
+  color: var(--color-ink);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.field::placeholder {
+  color: var(--color-faint);
+}
+.field:focus {
+  border-color: var(--color-info);
+}
+.field-auto {
+  width: auto;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
+.btn-primary {
+  background: var(--color-ink);
+  color: #fff;
+  border-radius: 0.875rem;
+  padding: 0.7rem 1.25rem;
+  font-weight: 500;
+  border: 0;
+  text-align: center;
+  display: inline-block;
+  transition: opacity 0.15s;
+}
+.btn-primary:hover {
+  opacity: 0.88;
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-nav);
+  border-radius: 0.875rem;
+  padding: 0.7rem 1.25rem;
+  font-weight: 500;
+  text-align: center;
+  display: inline-block;
+  transition: background 0.15s;
+}
+.btn-ghost:hover {
+  background: var(--color-line);
+}
+
+.chip {
+  border-radius: 0.6rem;
+  border: 1px solid;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.8rem;
+  background: transparent;
+}
+.chip-info {
+  color: var(--color-info);
+  border-color: color-mix(in srgb, var(--color-info) 45%, transparent);
+}
+.chip-info:hover {
+  background: color-mix(in srgb, var(--color-info) 12%, transparent);
+}
+.chip-expense {
+  color: var(--color-expense);
+  border-color: color-mix(in srgb, var(--color-expense) 45%, transparent);
+}
+.chip-expense:hover {
+  background: color-mix(in srgb, var(--color-expense) 12%, transparent);
 }

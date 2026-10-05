@@ -34,11 +34,11 @@ export default function TransactionFilters({
   categories,
 }: TransactionFiltersProps) {
   return (
-    <div className="mt-6 grid gap-4 md:grid-cols-4">
+    <div className="mt-8 grid gap-4 md:grid-cols-4">
 
       {/* ค้นหา */}
       <div className="md:col-span-2">
-        <label className="mb-2 block text-sm font-medium text-gray-700">
+        <label className="label">
           ค้นหารายการ
         </label>
 
@@ -47,13 +47,13 @@ export default function TransactionFilters({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="ค้นหาจากรายละเอียด..."
-          className="w-full rounded-xl border px-4 py-3 outline-none focus:ring-2 focus:ring-black"
+          className="field"
         />
       </div>
 
       {/* ประเภท */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
+        <label className="label">
           ประเภท
         </label>
 
@@ -67,7 +67,7 @@ export default function TransactionFilters({
                 | "EXPENSE"
             )
           }
-          className="w-full rounded-xl border px-4 py-3"
+          className="field"
         >
           <option value="ALL">ทั้งหมด</option>
           <option value="INCOME">รายรับ</option>
@@ -77,14 +77,14 @@ export default function TransactionFilters({
 
       {/* หมวดหมู่ */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
+        <label className="label">
           หมวดหมู่
         </label>
 
         <select
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
-          className="w-full rounded-xl border px-4 py-3"
+          className="field"
         >
           <option value="">ทุกหมวดหมู่</option>
 
@@ -101,7 +101,7 @@ export default function TransactionFilters({
 
       {/* เดือน */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
+        <label className="label">
           เดือน
         </label>
 
@@ -109,7 +109,7 @@ export default function TransactionFilters({
           type="month"
           value={month}
           onChange={(e) => setMonth(e.target.value)}
-          className="w-full rounded-xl border px-4 py-3"
+          className="field"
         />
       </div>
 

@@ -189,38 +189,38 @@ export default function BudgetPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gray-100 p-8">
-        <div className="mx-auto max-w-6xl">
-          <p className="text-gray-500">กำลังโหลดข้อมูล...</p>
+      <main className="pb-10">
+        <div className="mx-auto max-w-5xl">
+          <p className="text-muted">กำลังโหลดข้อมูล...</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 p-8">
-      <div className="mx-auto max-w-6xl">
+    <main className="pb-10">
+      <div className="mx-auto max-w-5xl">
         {/* Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold">🎯 งบประมาณ</h1>
+            <h1 className="text-2xl font-semibold">งบประมาณ</h1>
 
-            <p className="mt-2 text-gray-500">วางแผนและติดตามรายจ่ายของคุณ</p>
+            <p className="mt-1 text-xs text-muted">วางแผนและติดตามรายจ่ายของคุณ</p>
           </div>
 
           
         </div>
 
         {/* Month */}
-        <div className="mt-8 rounded-2xl bg-white p-6 shadow">
+        <div className="mt-8 card p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-end">
             <div>
-              <label className="mb-2 block text-sm font-medium">เดือน</label>
+              <label className="label">เดือน</label>
 
               <select
                 value={month}
                 onChange={(e) => setMonth(Number(e.target.value))}
-                className="rounded-xl border px-4 py-3"
+                className="field field-auto"
               >
                 {Array.from({ length: 12 }, (_, index) => index + 1).map(
                   (value) => (
@@ -238,12 +238,12 @@ export default function BudgetPage() {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium">ปี</label>
+              <label className="label">ปี</label>
 
               <select
                 value={year}
                 onChange={(e) => setYear(Number(e.target.value))}
-                className="rounded-xl border px-4 py-3"
+                className="field field-auto"
               >
                 {[
                   today.getFullYear() - 1,
@@ -257,15 +257,15 @@ export default function BudgetPage() {
               </select>
             </div>
 
-            <div className="pb-2 font-medium text-gray-600">{monthName}</div>
+            <div className="pb-2 font-medium text-muted">{monthName}</div>
           </div>
         </div>
 
         {/* Add Budget */}
-        <div className="mt-6 rounded-2xl bg-white p-6 shadow">
-          <h2 className="text-xl font-bold">ตั้งงบประมาณ</h2>
+        <div className="card mt-6 p-6">
+          <h2 className="text-lg font-semibold">ตั้งงบประมาณ</h2>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted">
             กำหนดงบสำหรับแต่ละหมวดหมู่รายจ่าย
           </p>
 
@@ -274,12 +274,12 @@ export default function BudgetPage() {
             className="mt-6 grid gap-4 md:grid-cols-3"
           >
             <div>
-              <label className="mb-2 block text-sm font-medium">หมวดหมู่</label>
+              <label className="label">หมวดหมู่</label>
 
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full rounded-xl border px-4 py-3"
+                className="field"
               >
                 <option value="">เลือกหมวดหมู่</option>
 
@@ -292,7 +292,7 @@ export default function BudgetPage() {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium">งบประมาณ</label>
+              <label className="label">งบประมาณ</label>
 
               <input
                 type="number"
@@ -301,7 +301,7 @@ export default function BudgetPage() {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="เช่น 4000"
-                className="w-full rounded-xl border px-4 py-3"
+                className="field"
               />
             </div>
 
@@ -309,7 +309,7 @@ export default function BudgetPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="flex-1 rounded-xl bg-black px-5 py-3 font-medium text-white hover:opacity-90 disabled:opacity-50"
+                className="btn-primary flex-1"
               >
                 {saving
                   ? "กำลังบันทึก..."
@@ -326,7 +326,7 @@ export default function BudgetPage() {
                     setAmount("");
                     setEditingBudgetId(null);
                   }}
-                  className="rounded-xl border px-5 py-3 font-medium text-gray-600 hover:bg-gray-50"
+                  className="btn-ghost"
                 >
                   ยกเลิก
                 </button>
@@ -337,11 +337,11 @@ export default function BudgetPage() {
 
         {/* Budget List */}
         <div className="mt-6">
-          <h2 className="mb-4 text-xl font-bold">งบประมาณของเดือนนี้</h2>
+          <h2 className="mb-4 text-lg font-semibold">งบประมาณของเดือนนี้</h2>
 
           {budgets.length === 0 ? (
-            <div className="rounded-2xl bg-white p-10 text-center shadow">
-              <p className="text-gray-400">
+            <div className="card p-10 text-center">
+              <p className="text-faint">
                 ยังไม่ได้ตั้งงบประมาณสำหรับเดือนนี้
               </p>
             </div>
@@ -362,17 +362,17 @@ export default function BudgetPage() {
                 return (
                   <div
                     key={budget.id}
-                    className="rounded-2xl bg-white p-6 shadow"
+                    className="card p-6"
                   >
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-bold">
+                      <h3 className="text-base font-semibold">
                         {budget.category.name}
                       </h3>
 
                       <div className="flex items-center gap-3">
                         <span
                           className={`text-sm font-medium ${
-                            isOver ? "text-red-500" : "text-gray-500"
+                            isOver ? "text-expense" : "text-muted"
                           }`}
                         >
                           {Math.round(percentage)}%
@@ -382,7 +382,7 @@ export default function BudgetPage() {
                           <button
                             type="button"
                             onClick={() => handleEdit(budget)}
-                            className="rounded-lg border border-blue-200 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50"
+                            className="chip chip-info"
                           >
                             แก้ไข
                           </button>
@@ -397,17 +397,17 @@ export default function BudgetPage() {
 
                     <div className="mt-4">
                       <div className="mb-2 flex justify-between text-sm">
-                        <span className="text-gray-500">ใช้ไป</span>
+                        <span className="text-muted">ใช้ไป</span>
 
                         <span className="font-medium">
                           ฿{formatMoney(spent)} / ฿{formatMoney(budgetAmount)}
                         </span>
                       </div>
 
-                      <div className="h-3 overflow-hidden rounded-full bg-gray-100">
+                      <div className="h-3 overflow-hidden rounded-full bg-line">
                         <div
                           className={`h-full rounded-full transition-all ${
-                            isOver ? "bg-red-500" : "bg-blue-500"
+                            isOver ? "bg-expense" : "bg-info"
                           }`}
                           style={{
                             width: `${Math.min(percentage, 100)}%`,
@@ -418,11 +418,11 @@ export default function BudgetPage() {
 
                     <div className="mt-4">
                       {isOver ? (
-                        <p className="font-medium text-red-500">
-                          ⚠️ เกินงบ ฿{formatMoney(Math.abs(remaining))}
+                        <p className="font-medium text-expense">
+                          เกินงบ ฿{formatMoney(Math.abs(remaining))}
                         </p>
                       ) : (
-                        <p className="font-medium text-green-600">
+                        <p className="font-medium text-income">
                           เหลืองบ ฿{formatMoney(remaining)}
                         </p>
                       )}

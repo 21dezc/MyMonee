@@ -30,7 +30,7 @@ export default function DeleteButton({
     <button
       type="button"
       onClick={handleDelete}
-      className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+      className="chip chip-expense"
     >
       ลบ
     </button>
