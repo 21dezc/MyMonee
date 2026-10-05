@@ -19,9 +19,26 @@ export async function GET(request: Request) {
     const month = Number(searchParams.get("month"));
     const year = Number(searchParams.get("year"));
 
-    if (!month || !year) {
+    // ตรวจเดือน
+    if (
+      !Number.isInteger(month) ||
+      month < 1 ||
+      month > 12
+    ) {
       return NextResponse.json(
-        { error: "กรุณาระบุเดือนและปี" },
+        { error: "เดือนต้องอยู่ระหว่าง 1 ถึง 12" },
+        { status: 400 }
+      );
+    }
+
+    // ตรวจปี
+    if (
+      !Number.isInteger(year) ||
+      year < 2000 ||
+      year > 2100
+    ) {
+      return NextResponse.json(
+        { error: "ปีไม่ถูกต้อง" },
         { status: 400 }
       );
     }
@@ -74,20 +91,60 @@ export async function POST(request: Request) {
       categoryId,
     } = body;
 
-    if (!amount || !month || !year || !categoryId) {
+    const numericAmount = Number(amount);
+    const numericMonth = Number(month);
+    const numericYear = Number(year);
+
+    // ตรวจจำนวนเงิน
+    if (
+      amount === undefined ||
+      amount === null ||
+      amount === "" ||
+      !Number.isFinite(numericAmount) ||
+      numericAmount <= 0
+    ) {
       return NextResponse.json(
-        { error: "กรุณากรอกข้อมูลให้ครบ" },
+        { error: "งบประมาณต้องเป็นตัวเลขที่มากกว่า 0" },
         { status: 400 }
       );
     }
 
-    if (Number(amount) <= 0) {
+    // ตรวจเดือน
+    if (
+      !Number.isInteger(numericMonth) ||
+      numericMonth < 1 ||
+      numericMonth > 12
+    ) {
       return NextResponse.json(
-        { error: "งบประมาณต้องมากกว่า 0" },
+        { error: "เดือนต้องอยู่ระหว่าง 1 ถึง 12" },
         { status: 400 }
       );
     }
 
+    // ตรวจปี
+    if (
+      !Number.isInteger(numericYear) ||
+      numericYear < 2000 ||
+      numericYear > 2100
+    ) {
+      return NextResponse.json(
+        { error: "ปีไม่ถูกต้อง" },
+        { status: 400 }
+      );
+    }
+
+    // ตรวจ categoryId
+    if (
+      !categoryId ||
+      typeof categoryId !== "string"
+    ) {
+      return NextResponse.json(
+        { error: "กรุณาเลือกหมวดหมู่รายจ่าย" },
+        { status: 400 }
+      );
+    }
+
+    // ตรวจหมวดหมู่
     const category = await prisma.category.findFirst({
       where: {
         id: categoryId,
@@ -102,22 +159,23 @@ export async function POST(request: Request) {
       );
     }
 
+    // เพิ่ม / แก้ไขงบประมาณ
     const budget = await prisma.budget.upsert({
       where: {
         userId_categoryId_month_year: {
           userId: session.user.id,
           categoryId,
-          month: Number(month),
-          year: Number(year),
+          month: numericMonth,
+          year: numericYear,
         },
       },
       update: {
-        amount: Number(amount),
+        amount: numericAmount,
       },
       create: {
-        amount: Number(amount),
-        month: Number(month),
-        year: Number(year),
+        amount: numericAmount,
+        month: numericMonth,
+        year: numericYear,
         userId: session.user.id,
         categoryId,
       },

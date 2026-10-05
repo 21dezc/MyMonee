@@ -37,41 +37,67 @@ export default function AddTransactionPage() {
   }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  e.preventDefault();
 
-    setError("");
-    setLoading(true);
+  setError("");
 
-    try {
-      const response = await fetch("/api/transactions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          amount,
-          type,
-          description,
-          date,
-          categoryId,
-        }),
-      });
+  // ตรวจจำนวนเงิน
+  const numericAmount = Number(amount);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || "เพิ่มรายการไม่สำเร็จ");
-        return;
-      }
-
-      router.push("/dashboard");
-      router.refresh();
-    } catch {
-      setError("ไม่สามารถเชื่อมต่อ Server ได้");
-    } finally {
-      setLoading(false);
-    }
+  if (!amount.trim()) {
+    setError("กรุณากรอกจำนวนเงิน");
+    return;
   }
+
+  if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+    setError("จำนวนเงินต้องเป็นตัวเลขที่มากกว่า 0");
+    return;
+  }
+
+  // ตรวจหมวดหมู่
+  if (!categoryId) {
+    setError("กรุณาเลือกหมวดหมู่");
+    return;
+  }
+
+  // ตรวจรายละเอียด
+  if (description.length > 200) {
+    setError("รายละเอียดต้องไม่เกิน 200 ตัวอักษร");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const response = await fetch("/api/transactions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        amount: numericAmount,
+        type,
+        description: description.trim(),
+        date,
+        categoryId,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setError(data.error || "เพิ่มรายการไม่สำเร็จ");
+      return;
+    }
+
+    router.push("/dashboard");
+    router.refresh();
+  } catch {
+    setError("ไม่สามารถเชื่อมต่อ Server ได้");
+  } finally {
+    setLoading(false);
+  }
+}
 
   return (
     <main className="pb-10">
@@ -160,7 +186,7 @@ export default function AddTransactionPage() {
 
               <input
                 type="number"
-                min="0"
+                min="0.01"
                 step="0.01"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
@@ -182,6 +208,7 @@ export default function AddTransactionPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="เช่น ค่าอาหารกลางวัน"
                 className="field"
+                maxLength={200}
               />
             </div>
 

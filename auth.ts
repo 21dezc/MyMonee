@@ -58,21 +58,33 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
 
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-      }
+    callbacks: {
+      async jwt({ token, user }) {
+        if (user) {
+          token.id = user.id;
+          token.picture = user.image;
+        }
 
-      return token;
+        return token;
+      },
+
+      async session({ session, token }) {
+        if (session.user && token.id) {
+          const dbUser = await prisma.user.findUnique({
+            where: {
+              id: token.id as string,
+            },
+          });
+
+          if (dbUser) {
+            session.user.id = dbUser.id;
+            session.user.name = dbUser.name ?? dbUser.username ?? "";
+            session.user.email = dbUser.email ?? "";
+            session.user.image = dbUser.image ?? "";
+          }
+        }
+
+        return session;
+      },
     },
-
-    async session({ session, token }) {
-      if (session.user && token.id) {
-        session.user.id = token.id as string;
-      }
-
-      return session;
-    },
-  },
 });

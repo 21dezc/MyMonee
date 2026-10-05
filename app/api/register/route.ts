@@ -6,9 +6,17 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const username = body.username?.trim();
-    const password = body.password;
+    const username =
+      typeof body.username === "string"
+        ? body.username.trim()
+        : "";
 
+    const password =
+      typeof body.password === "string"
+        ? body.password
+        : "";
+
+    // ตรวจ Username และ Password
     if (!username || !password) {
       return NextResponse.json(
         { error: "กรุณากรอก Username และ Password" },
@@ -16,6 +24,33 @@ export async function POST(request: Request) {
       );
     }
 
+    // ตรวจ Username
+    if (username.length < 3) {
+      return NextResponse.json(
+        { error: "Username ต้องมีอย่างน้อย 3 ตัวอักษร" },
+        { status: 400 }
+      );
+    }
+
+    if (username.length > 30) {
+      return NextResponse.json(
+        { error: "Username ต้องไม่เกิน 30 ตัวอักษร" },
+        { status: 400 }
+      );
+    }
+
+    // อนุญาตเฉพาะตัวอักษร ตัวเลข _ และ -
+    if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+      return NextResponse.json(
+        {
+          error:
+            "Username ใช้ได้เฉพาะตัวอักษร ตัวเลข _ และ -",
+        },
+        { status: 400 }
+      );
+    }
+
+    // ตรวจ Password
     if (password.length < 6) {
       return NextResponse.json(
         { error: "Password ต้องมีอย่างน้อย 6 ตัวอักษร" },
@@ -23,8 +58,18 @@ export async function POST(request: Request) {
       );
     }
 
+    if (password.length > 100) {
+      return NextResponse.json(
+        { error: "Password ต้องไม่เกิน 100 ตัวอักษร" },
+        { status: 400 }
+      );
+    }
+
+    // ตรวจ Username ซ้ำ
     const existingUser = await prisma.user.findUnique({
-      where: { username },
+      where: {
+        username,
+      },
     });
 
     if (existingUser) {
@@ -34,6 +79,7 @@ export async function POST(request: Request) {
       );
     }
 
+    // Hash Password ก่อนบันทึก
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({

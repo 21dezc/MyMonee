@@ -58,13 +58,23 @@ export async function POST(request: Request) {
       categoryId,
     } = body;
 
-    if (!amount || !type || !categoryId) {
+    // ตรวจจำนวนเงิน
+    const numericAmount = Number(amount);
+
+    if (
+      amount === undefined ||
+      amount === null ||
+      amount === "" ||
+      !Number.isFinite(numericAmount) ||
+      numericAmount <= 0
+    ) {
       return NextResponse.json(
-        { error: "กรุณากรอกข้อมูลให้ครบ" },
+        { error: "จำนวนเงินต้องเป็นตัวเลขที่มากกว่า 0" },
         { status: 400 }
       );
     }
 
+    // ตรวจประเภท
     if (type !== "INCOME" && type !== "EXPENSE") {
       return NextResponse.json(
         { error: "ประเภทข้อมูลไม่ถูกต้อง" },
@@ -72,18 +82,83 @@ export async function POST(request: Request) {
       );
     }
 
-    const transaction = await prisma.transaction.create({
-      data: {
-        amount: Number(amount),
+    // ตรวจหมวดหมู่
+    if (!categoryId || typeof categoryId !== "string") {
+      return NextResponse.json(
+        { error: "กรุณาเลือกหมวดหมู่" },
+        { status: 400 }
+      );
+    }
+
+    // ตรวจว่าหมวดหมู่มีอยู่จริง
+    // และต้องตรงกับประเภทของรายการ
+    const category = await prisma.category.findFirst({
+      where: {
+        id: categoryId,
         type,
-        description: description || null,
-        date: date ? new Date(date) : new Date(),
-        userId: session.user.id,
-        categoryId: categoryId,
       },
     });
 
-    return NextResponse.json(transaction, { status: 201 });
+    if (!category) {
+      return NextResponse.json(
+        { error: "หมวดหมู่ไม่ถูกต้องหรือไม่ตรงกับประเภทรายการ" },
+        { status: 400 }
+      );
+    }
+
+    // ตรวจรายละเอียด
+    if (
+      description !== undefined &&
+      description !== null &&
+      typeof description !== "string"
+    ) {
+      return NextResponse.json(
+        { error: "รายละเอียดไม่ถูกต้อง" },
+        { status: 400 }
+      );
+    }
+
+    if (typeof description === "string" && description.length > 200) {
+      return NextResponse.json(
+        { error: "รายละเอียดต้องไม่เกิน 200 ตัวอักษร" },
+        { status: 400 }
+      );
+    }
+
+    // ตรวจวันที่
+    let transactionDate = new Date();
+
+    if (date) {
+      const parsedDate = new Date(date);
+
+      if (Number.isNaN(parsedDate.getTime())) {
+        return NextResponse.json(
+          { error: "วันที่ไม่ถูกต้อง" },
+          { status: 400 }
+        );
+      }
+
+      transactionDate = parsedDate;
+    }
+
+    // สร้างรายการ
+    const transaction = await prisma.transaction.create({
+      data: {
+        amount: numericAmount,
+        type,
+        description:
+          typeof description === "string"
+            ? description.trim() || null
+            : null,
+        date: transactionDate,
+        userId: session.user.id,
+        categoryId,
+      },
+    });
+
+    return NextResponse.json(transaction, {
+      status: 201,
+    });
   } catch (error) {
     console.error(error);
 
