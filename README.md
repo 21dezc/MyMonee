@@ -2,22 +2,21 @@
 
 **MyMonee** เว็บแอปพลิเคชันสำหรับจัดการรายรับ–รายจ่ายส่วนบุคคล
 
-> 🎓 Final Project — Computer and Information Science (CIS)
+> 🎓 Final Project — CIS
 
 ---
 
 ##  Features
 
-* 🔐 สมัครสมาชิกและเข้าสู่ระบบ
-* 👤 Login ด้วย Username / Password
-* 🐙 Login ด้วย GitHub
-* 💰 บันทึกรายรับและรายจ่าย
-* 📊 ดูสรุปข้อมูลทางการเงิน
-* 🗂️ จัดหมวดหมู่รายการธุรกรรม
-* 🌙 รองรับ Light Mode / Dark Mode
+* 🔐 Sign Up & Login
+* 👤 Username / Password Login
+* 🐙 GitHub Login
+* 💰 Track Income & Expenses
+* 📊 Financial Summary
+* 🗂️ Transaction Categories
+* 🌙 Light & Dark Mode
 * 📱 Responsive Design
 * 🔒 Password ถูก Hash ก่อนจัดเก็บในฐานข้อมูล
-
 ---
 
 ## 🛠️ Tech Stack
@@ -109,8 +108,6 @@ AUTH_GITHUB_ID="your_github_client_id"
 AUTH_GITHUB_SECRET="your_github_client_secret"
 ```
 
-> ⚠️ ห้ามนำไฟล์ `.env` หรือ Secret ต่าง ๆ ขึ้น GitHub
-
 ### 4. เตรียม Database
 
 ```bash
@@ -153,9 +150,8 @@ MyMonee รองรับการเข้าสู่ระบบ 2 รูป
 
 เงื่อนไข Password:
 
-* 6–100 ตัวอักษร
+* 6 ตัวอักษรขึ้นไป
 * รองรับภาษาอังกฤษ ตัวเลข และสัญลักษณ์
-* ไม่อนุญาตภาษาไทยหรือเว้นวรรค
 
 Password จะถูก Hash ก่อนจัดเก็บลงฐานข้อมูล
 
@@ -213,14 +209,3 @@ This project is developed for educational purposes.
 
 ````
 
-**อันนี้เหมาะกับ repo ตอนนี้มากกว่า README เดิม** เพราะหน้า GitHub ของเรายังแสดงข้อความ `This is a Next.js project bootstrapped with create-next-app` อยู่เลย
-
-ถ้าจะเอาขึ้น GitHub ให้เปิด `README.md` ใน VS Code → **Ctrl+A → วางทั้งหมดด้านบน → Ctrl+S** แล้วรัน:
-
-```bash
-git add README.md
-git commit -m "update README"
-git push
-````
-
-แล้ว Refresh GitHub ได้เลย ✨
