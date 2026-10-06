@@ -1,53 +1,114 @@
 # 💰 MyMonee
 
-**MyMonee** เว็บแอปพลิเคชันสำหรับจัดการรายรับ–รายจ่ายส่วนบุคคล
+**MyMonee** คือ Web Application สำหรับจัดการ **รายรับ–รายจ่ายส่วนบุคคล (Personal Finance)**
+
+ผู้ใช้สามารถบันทึก จัดการ ค้นหา และดูสรุปข้อมูลทางการเงินของตัวเองได้ในที่เดียว
 
 > 🎓 Final Project — CIS
 
 ---
 
-##  Features
+## ✨ Features
 
-* 🔐 Sign Up & Login
-* 👤 Username / Password Login
-* 🐙 GitHub Login
-* 💰 Track Income & Expenses
-* 📊 Financial Summary
-* 🗂️ Transaction Categories
-* 🌙 Light & Dark Mode
+* 🔐 สมัครสมาชิกและเข้าสู่ระบบ (Sign Up & Login)
+* 👤 Login ด้วย Username / Password
+* 🐙 Login ด้วย GitHub
+* 💰 บันทึกรายรับและรายจ่าย (Income & Expenses)
+* 📊 ดูสรุปข้อมูลทางการเงิน (Financial Summary)
+* 🗂️ จัดหมวดหมู่รายการ (Transaction Categories)
+* 🔎 ค้นหาและ Filter รายการ
+* ✏️ แก้ไขและลบรายการ
+* 💵 จัดการงบประมาณ (Budget)
+* 👤 จัดการข้อมูล Profile
+* 🌙 Light Mode / Dark Mode
 * 📱 Responsive Design
-* 🔒 Password ถูก Hash ก่อนจัดเก็บในฐานข้อมูล
+* 🔒 Password Hashing เพื่อความปลอดภัย
+
+---
+
+## 📋 คุณสมบัติของระบบ
+
+### 1. CRUD
+
+ระบบสามารถจัดการข้อมูลรายรับ–รายจ่ายได้ครบทั้ง **CRUD**
+
+* **Create** — เพิ่มรายการ
+* **Read** — แสดงรายการ
+* **Update** — แก้ไขรายการ
+* **Delete** — ลบรายการ
+
+---
+
+### 2. Data Validation
+
+ระบบมีการ **Validation ข้อมูล** ก่อนบันทึก เพื่อป้องกันข้อมูลที่ไม่ถูกต้อง เช่น
+
+* ตรวจสอบ Username
+* ตรวจสอบ Password
+* ตรวจสอบจำนวนเงิน
+* ตรวจสอบประเภทของรายการ
+* ตรวจสอบหมวดหมู่
+* ตรวจสอบรายละเอียด
+* ตรวจสอบวันที่
+
+---
+
+### 3. Authentication
+
+ระบบมี **Authentication (การยืนยันตัวตน)** เพื่อควบคุมการเข้าถึงข้อมูล
+
+รองรับ:
+
+* Username / Password
+* GitHub Login
+* ตรวจสอบ Session ก่อนเข้าถึงข้อมูลที่ต้อง Login
+
+ผู้ใช้แต่ละคนสามารถจัดการข้อมูลของตัวเองได้
+
+---
+
+### 4. Search & Filter
+
+สามารถ **ค้นหาและ Filter รายการรายรับ–รายจ่าย** ได้จาก
+
+* 🔎 รายละเอียดรายการ (Description)
+* 💰 ประเภทรายการ (Income / Expense)
+* 🗂️ หมวดหมู่ (Category)
+* 📅 เดือน (Month)
+
+---
+
+### 5. REST API
+
+ระบบมี **API** สำหรับจัดการข้อมูล โดยรองรับ HTTP Methods หลัก ได้แก่
+
+| Method   | การทำงาน               |
+| -------- | ---------------------- |
+| `GET`    | ดึงข้อมูล / แสดงข้อมูล |
+| `POST`   | เพิ่มข้อมูล            |
+| `PUT`    | แก้ไขข้อมูล            |
+| `DELETE` | ลบข้อมูล               |
+
 ---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
 
-* Next.js
-* React
-* TypeScript
-* Tailwind CSS
+* **Next.js**
+* **React**
+* **TypeScript**
+* **Tailwind CSS**
 
 ### Backend
 
-* Next.js API Routes
-* Auth.js
-* Prisma ORM
+* **Next.js API Routes**
+* **Auth.js**
+* **Prisma ORM**
 
 ### Database
 
-* PostgreSQL
-
-### Authentication
-
-* Username / Password
-* GitHub OAuth
-
-### Tools
-
-* Git
-* GitHub
-* VS Code
+* **PostgreSQL**
 
 ---
 
@@ -57,12 +118,21 @@
 MyMonee/
 ├── app/
 │   ├── api/
-│   │   └── register/
+│   │   ├── auth/
+│   │   ├── budgets/
+│   │   ├── categories/
+│   │   ├── profile/
+│   │   ├── register/
+│   │   └── transactions/
+│   │
 │   ├── dashboard/
+│   │   ├── add/
+│   │   ├── budget/
+│   │   ├── profile/
+│   │   └── transactions/
+│   │
 │   ├── login/
-│   ├── register/
-│   ├── generated/
-│   └── ...
+│   └── register/
 │
 ├── lib/
 │   └── prisma.ts
@@ -73,14 +143,13 @@ MyMonee/
 ├── public/
 │
 ├── auth.ts
-├── prisma7.config.ts
 ├── package.json
 └── README.md
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 วิธีติดตั้งและ Run Project
 
 ### 1. Clone Repository
 
@@ -89,7 +158,7 @@ git clone https://github.com/21dezc/MyMonee.git
 cd MyMonee
 ```
 
-### 2. Install Dependencies
+### 2. ติดตั้ง Dependencies
 
 ```bash
 npm install
@@ -114,19 +183,19 @@ AUTH_GITHUB_SECRET="your_github_client_secret"
 npx prisma migrate dev
 ```
 
-หากต้องการเปิด Prisma Studio:
+หากต้องการดูข้อมูลใน Database สามารถใช้:
 
 ```bash
 npx prisma studio
 ```
 
-### 5. Run Development Server
+### 5. Run Project
 
 ```bash
 npm run dev
 ```
 
-จากนั้นเปิด:
+จากนั้นเปิดเว็บไซต์ที่
 
 ```text
 http://localhost:3000
@@ -134,64 +203,51 @@ http://localhost:3000
 
 ---
 
-## 🔐 Authentication
+## 🗄️ Database
 
-MyMonee รองรับการเข้าสู่ระบบ 2 รูปแบบ
+MyMonee ใช้ **PostgreSQL** เป็น Database และใช้ **Prisma ORM** ในการจัดการข้อมูล
 
-### Username / Password
+Model หลักของระบบ ได้แก่
 
-ผู้ใช้สามารถสมัครบัญชีด้วย Username และ Password
-
-เงื่อนไข Username:
-
-* 3–30 ตัวอักษร
-* ต้องขึ้นต้นด้วยตัวอักษรภาษาอังกฤษ
-* รองรับตัวอักษรภาษาอังกฤษ ตัวเลข `_` และ `-`
-
-เงื่อนไข Password:
-
-* 6 ตัวอักษรขึ้นไป
-* รองรับภาษาอังกฤษ ตัวเลข และสัญลักษณ์
-
-Password จะถูก Hash ก่อนจัดเก็บลงฐานข้อมูล
-
-### GitHub Login
-
-สามารถเข้าสู่ระบบผ่าน GitHub OAuth ได้
+* `User` — ข้อมูลผู้ใช้
+* `Account` — ข้อมูลบัญชีที่ใช้ Login ผ่าน OAuth
+* `Session` — ข้อมูล Session
+* `Category` — หมวดหมู่รายรับและรายจ่าย
+* `Transaction` — รายการรายรับ–รายจ่าย
+* `Budget` — งบประมาณของผู้ใช้
 
 ---
 
-## 📊 Database
+## 🔒 Security
 
-โปรเจกต์ใช้ **PostgreSQL** ร่วมกับ **Prisma ORM**
+ระบบมีการรักษาความปลอดภัย เช่น
 
-โครงสร้างหลักประกอบด้วย:
-
-* `User` — ข้อมูลผู้ใช้
-* `Account` — ข้อมูล OAuth Account
-* `Category` — หมวดหมู่รายรับ/รายจ่าย
-* `Transaction` — รายการธุรกรรม
+* 🔐 Hash Password ก่อนจัดเก็บใน Database
+* 🛡️ ตรวจสอบ Authentication ก่อนเข้าถึงข้อมูล
+* 👤 จำกัดการเข้าถึง Transaction ตาม User
+* ✅ Validation ข้อมูลก่อนบันทึก
+* 🔑 เก็บข้อมูลสำคัญผ่าน Environment Variables
 
 ---
 
 ## 🎨 Design
 
-MyMonee เน้นการออกแบบที่เรียบง่ายและใช้งานง่าย
+MyMonee เน้นการออกแบบที่ **Clean และใช้งานง่าย**
 
-* Clean UI
-* Rounded Cards
-* Soft Shadows
-* Light / Dark Mode
-* Responsive Layout
-* เน้นสีที่อ่านง่ายและสบายตา
+* UI เรียบง่าย ไม่ซับซ้อน
+* Rounded Cards และ Buttons
+* Light Mode / Dark Mode
+* Responsive Design
+* แยกสีสำหรับรายรับและรายจ่ายให้ดูง่าย
 
 ---
 
 ## 📌 Project Status
 
-🚧 **In Development**
+🚧 **อยู่ระหว่างการพัฒนา (In Development)**
 
-ฟีเจอร์และ UI บางส่วนยังอยู่ระหว่างการพัฒนา
+โปรเจกต์นี้จัดทำขึ้นเพื่อเป็น **Final Project**
+ของสาขา **Computer and Information Science (CIS)**
 
 ---
 
@@ -202,10 +258,4 @@ MyMonee เน้นการออกแบบที่เรียบง่า
 Computer and Information Science (CIS)
 
 ---
-
-## 📄 License
-
-This project is developed for educational purposes.
-
-````
 
