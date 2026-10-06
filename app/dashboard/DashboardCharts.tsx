@@ -51,26 +51,61 @@ export default function DashboardCharts({
         </p>
 
         <div className="mt-6 h-80">
-          <ResponsiveContainer
-            width="100%"
-            height="100%"
-          >
+          <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>
-              <CartesianGrid stroke="#eeeeee" vertical={false} />
+              <CartesianGrid
+                stroke="var(--color-line)"
+                vertical={false}
+              />
 
-              <XAxis dataKey="month" tick={{ fill: "#7a7879", fontSize: 12 }} axisLine={{ stroke: "#dbdbdb" }} tickLine={false} />
+              <XAxis
+                dataKey="month"
+                tick={{
+                  fill: "var(--color-muted)",
+                  fontSize: 12,
+                }}
+                axisLine={{
+                  stroke: "var(--color-nav)",
+                }}
+                tickLine={false}
+              />
 
-              <YAxis tick={{ fill: "#7a7879", fontSize: 12 }} axisLine={false} tickLine={false} />
+              <YAxis
+                tick={{
+                  fill: "var(--color-muted)",
+                  fontSize: 12,
+                }}
+                axisLine={false}
+                tickLine={false}
+              />
 
               <Tooltip
-                cursor={{ fill: "#eeeeee" }}
-                contentStyle={{ background: "#f8f8f8", border: "1px solid #eeeeee", borderRadius: 12, color: "#494947" }}
+                cursor={{
+                  fill: "var(--color-line)",
+                }}
+                contentStyle={{
+                  background: "var(--color-paper)",
+                  border: "1px solid var(--color-nav)",
+                  borderRadius: 12,
+                  color: "var(--color-ink)",
+                }}
+                labelStyle={{
+                  color: "var(--color-ink)",
+                }}
+                itemStyle={{
+                  color: "var(--color-ink)",
+                }}
                 formatter={(value) =>
                   `฿${Number(value).toLocaleString("th-TH")}`
                 }
               />
 
-              <Legend wrapperStyle={{ color: "#7a7879", fontSize: 12 }} />
+              <Legend
+                wrapperStyle={{
+                  color: "var(--color-muted)",
+                  fontSize: 12,
+                }}
+              />
 
               <Bar
                 dataKey="income"
@@ -109,10 +144,7 @@ export default function DashboardCharts({
           </p>
         ) : (
           <div className="mt-4 h-80">
-            <ResponsiveContainer
-              width="100%"
-              height="100%"
-            >
+            <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={categoryData}
@@ -121,7 +153,10 @@ export default function DashboardCharts({
                   cx="50%"
                   cy="50%"
                   outerRadius={100}
-                  label={{ fill: "#7a7879", fontSize: 12 }}
+                  label={{
+                    fill: "var(--color-muted)",
+                    fontSize: 12,
+                  }}
                 >
                   {categoryData.map((entry, index) => (
                     <Cell
@@ -136,20 +171,36 @@ export default function DashboardCharts({
                         "#d58fb4",
                         "#b6b6b2",
                       ][index % 8]}
-                      stroke="#f8f8f8"
+                      stroke="var(--color-paper)"
                       strokeWidth={2}
                     />
                   ))}
                 </Pie>
 
                 <Tooltip
-                  contentStyle={{ background: "#f8f8f8", border: "1px solid #eeeeee", borderRadius: 12, color: "#494947" }}
+                  contentStyle={{
+                    background: "var(--color-paper)",
+                    border: "1px solid var(--color-nav)",
+                    borderRadius: 12,
+                    color: "var(--color-ink)",
+                  }}
+                  labelStyle={{
+                    color: "var(--color-ink)",
+                  }}
+                  itemStyle={{
+                    color: "var(--color-ink)",
+                  }}
                   formatter={(value) =>
                     `฿${Number(value).toLocaleString("th-TH")}`
                   }
                 />
 
-                <Legend wrapperStyle={{ color: "#7a7879", fontSize: 12 }} />
+                <Legend
+                  wrapperStyle={{
+                    color: "var(--color-muted)",
+                    fontSize: 12,
+                  }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>

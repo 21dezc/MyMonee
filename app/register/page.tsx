@@ -10,9 +10,43 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const usernameRules = [
+    {
+      ok: username.length >= 3 && username.length <= 30,
+      text: "3–30 ตัวอักษร",
+    },
+    {
+      ok: /^[a-zA-Z]/.test(username),
+      text: "ขึ้นต้นด้วยตัวอักษรภาษาอังกฤษ",
+    },
+  ];
+
+  const passwordRules = [
+    { ok: password.length >= 6, text: "อย่างน้อย 6 ตัวอักษร" },
+  ];
+
+  // มีตัวอักษรที่ไม่ใช่ภาษาอังกฤษ/ตัวเลข/สัญลักษณ์
+  // เช่น ภาษาไทย หรือเว้นวรรค
+  const passwordHasInvalidChar = /[^\x21-\x7E]/.test(password);
+
+  const passwordsMatch =
+    confirmPassword.length > 0 && password === confirmPassword;
+
+  const canSubmit =
+    usernameRules.every((r) => r.ok) &&
+    passwordRules.every((r) => r.ok) &&
+    !passwordHasInvalidChar &&
+    passwordsMatch;
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
+
+    if (!canSubmit) {
+      setError("กรุณากรอกข้อมูลให้ตรงตามเงื่อนไข");
+      return;
+    }
 
     setError("");
     setLoading(true);
@@ -64,11 +98,26 @@ export default function RegisterPage() {
             <input
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) =>
+                setUsername(
+                  e.target.value.replace(/[^a-zA-Z0-9\_-]/g, "")
+                )
+              }
               className="field"
-              placeholder="กรอก Username"
+              placeholder="เช่น mymonee_01"
               required
             />
+
+            <ul className="mt-2 space-y-1 text-xs">
+              {usernameRules.map((r) => (
+                <li
+                  key={r.text}
+                  className={r.ok ? "text-income" : "text-muted"}
+                >
+                  {r.ok ? "✓" : "○"} {r.text}
+                </li>
+              ))}
+            </ul>
           </div>
 
           <div>
@@ -85,6 +134,50 @@ export default function RegisterPage() {
               minLength={6}
               required
             />
+
+            <ul className="mt-2 space-y-1 text-xs">
+              {passwordRules.map((r) => (
+                <li
+                  key={r.text}
+                  className={r.ok ? "text-income" : "text-muted"}
+                >
+                  {r.ok ? "✓" : "○"} {r.text}
+                </li>
+              ))}
+            </ul>
+
+            {passwordHasInvalidChar && (
+              <p className="mt-2 text-xs text-expense">
+                รหัสผ่านต้องเป็นภาษาอังกฤษเท่านั้น (ตัวเลขและสัญลักษณ์ใช้ได้ ห้ามเว้นวรรค)
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="label">
+              ยืนยัน Password
+            </label>
+
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="field"
+              placeholder="กรอก Password อีกครั้ง"
+              required
+            />
+
+            {confirmPassword.length > 0 && (
+              <p
+                className={`mt-2 text-xs ${
+                  passwordsMatch ? "text-income" : "text-expense"
+                }`}
+              >
+                {passwordsMatch
+                  ? "✓ รหัสผ่านตรงกัน"
+                  : "✗ รหัสผ่านไม่ตรงกัน"}
+              </p>
+            )}
           </div>
 
           {error && (
@@ -95,7 +188,7 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !canSubmit}
             className="btn-primary w-full"
           >
             {loading ? "กำลังสมัคร..." : "สมัครสมาชิก"}

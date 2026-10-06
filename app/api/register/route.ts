@@ -50,32 +50,25 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!/^[a-zA-Z]/.test(username)) {
+      return NextResponse.json(
+        { error: "Username ต้องขึ้นต้นด้วยตัวอักษรภาษาอังกฤษ" },
+        { status: 400 }
+      );
+    }
+
     // ตรวจ Password
-    if (password.length < 6) {
+    if (password.length < 6 || password.length > 100) {
       return NextResponse.json(
-        { error: "Password ต้องมีอย่างน้อย 6 ตัวอักษร" },
+        { error: "Password ต้องมี 6–100 ตัวอักษร" },
         { status: 400 }
       );
     }
 
-    if (password.length > 100) {
+    if (!/^[\x21-\x7E]+$/.test(password)) {
       return NextResponse.json(
-        { error: "Password ต้องไม่เกิน 100 ตัวอักษร" },
+        { error: "รหัสผ่านต้องเป็นภาษาอังกฤษเท่านั้น" },
         { status: 400 }
-      );
-    }
-
-    // ตรวจ Username ซ้ำ
-    const existingUser = await prisma.user.findUnique({
-      where: {
-        username,
-      },
-    });
-
-    if (existingUser) {
-      return NextResponse.json(
-        { error: "Username นี้ถูกใช้งานแล้ว" },
-        { status: 409 }
       );
     }
 
@@ -105,3 +98,4 @@ export async function POST(request: Request) {
     );
   }
 }
+

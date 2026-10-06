@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import DeleteButton from "./DeleteButton";
 import TransactionFilters from "./TransactionFilters";
+import Link from "next/link";
 
 type Transaction = {
   id: string;
@@ -164,12 +165,12 @@ export default function TransactionList({
                       )}
                     </p>
 
-                    <a
+                    <Link
                       href={`/dashboard/transactions/${transaction.id}/edit`}
                       className="chip chip-info"
                     >
                       แก้ไข
-                    </a>
+                    </Link>
 
                     <DeleteButton
                       id={transaction.id}

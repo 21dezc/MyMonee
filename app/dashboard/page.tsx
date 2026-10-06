@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import DashboardCharts from "./DashboardCharts";
+import Link from "next/link";
 
 
 export default async function DashboardPage() {
@@ -173,12 +174,12 @@ export default async function DashboardPage() {
       </div>
 
       <div className="mt-4">
-        <a
+        <Link
           href="/dashboard/add"
           className="btn-ghost !rounded-full !px-4 !py-1.5 text-sm"
         >
           + เพิ่มรายการ
-        </a>
+        </Link>
       </div>
 
       {/* Chart */}
@@ -248,12 +249,12 @@ export default async function DashboardPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">รายการล่าสุด</h2>
 
-          <a
+          <Link
             href="/dashboard/transactions"
             className="text-sm text-muted hover:text-ink"
           >
             ดูทั้งหมด →
-          </a>
+          </Link>
         </div>
 
         <div className="mt-3">

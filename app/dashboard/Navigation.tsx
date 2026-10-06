@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import ThemeToggle from "./ThemeToggle";
 
 const links = [
   { href: "/dashboard", label: "Dashboard" },
@@ -47,7 +48,9 @@ export default function Navigation({ user }: NavigationProps) {
         </div>
       </div>
 
-      <div className="flex justify-center sm:flex-1 sm:justify-end">
+      <div className="flex items-center justify-center gap-2 sm:fl
+      ex-1 sm:justify-end">
+        <ThemeToggle />
         <Link
           href="/dashboard/profile"
           aria-label="โปรไฟล์"

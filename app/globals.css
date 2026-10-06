@@ -13,6 +13,20 @@
   --color-info: #73a7d5;      /* ฟ้า */
 }
 
+  .dark {
+  --color-paper: #1c1c1b;
+  --color-line: #292928;
+  --color-nav: #3a3a38;
+  --color-ink: #eeeeeb;
+  --color-muted: #aaa9a5;
+  --color-faint: #777773;
+
+  --color-expense: #e88b8b;
+  --color-income: #a9df83;
+  --color-info: #82b8e5;
+}
+
+
 * {
   box-sizing: border-box;
 }
@@ -96,6 +110,11 @@ a {
   display: inline-block;
   transition: opacity 0.15s;
 }
+
+.dark .btn-primary {
+  color: #1c1c1b;
+}
+
 .btn-primary:hover {
   opacity: 0.88;
 }
@@ -139,3 +158,4 @@ a {
 .chip-expense:hover {
   background: color-mix(in srgb, var(--color-expense) 12%, transparent);
 }
+
