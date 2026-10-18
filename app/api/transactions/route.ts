@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
+import { monthRange } from "@/lib/date";
 
-// ดูรายการทั้งหมดของผู้ใช้
-export async function GET() {
+// ดูรายการของผู้ใช้ (ใส่ ?year=2026&month=10 เพื่อดึงเฉพาะเดือนนั้น)
+export async function GET(request: Request) {
   try {
     const session = await auth();
 
@@ -14,9 +15,29 @@ export async function GET() {
       );
     }
 
+    const { searchParams } = new URL(request.url);
+
+    const year = Number(searchParams.get("year"));
+    const month = Number(searchParams.get("month"));
+
+    const hasMonth =
+      Number.isInteger(year) &&
+      Number.isInteger(month) &&
+      year >= 2000 &&
+      year <= 2100 &&
+      month >= 1 &&
+      month <= 12;
+
     const transactions = await prisma.transaction.findMany({
       where: {
         userId: session.user.id,
+        ...(hasMonth
+          ? (() => {
+              const { start, end } = monthRange(year, month);
+
+              return { date: { gte: start, lt: end } };
+            })()
+          : {}),
       },
       include: {
         category: true,

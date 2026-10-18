@@ -1,3 +1,4 @@
+import { cache } from "react";
 import NextAuth from "next-auth";
 import GitHub from "next-auth/providers/github";
 import Credentials from "next-auth/providers/credentials";
@@ -12,11 +13,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     strategy: "jwt",
   },
 
+  // ให้แสดง error ของการ login (เช่น อีเมลซ้ำกับบัญชีอื่น) ที่หน้า /login
+  pages: {
+    error: "/login",
+  },
+
   providers: [
     GitHub({
       clientId: process.env.AUTH_GITHUB_ID,
       clientSecret: process.env.AUTH_GITHUB_SECRET,
-      allowDangerousEmailAccountLinking: true,
     }),
 
     Credentials({
@@ -88,3 +93,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     },
 });
+
+// ใช้ใน Server Component (layout / page) แทน auth()
+// cache() ทำให้เรียกซ้ำใน request เดียวกันแล้วยิง DB แค่ครั้งเดียว
+export const getSession = cache(auth);

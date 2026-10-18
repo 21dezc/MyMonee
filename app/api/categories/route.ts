@@ -9,7 +9,13 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(categories);
+    // หมวดหมู่เปลี่ยนไม่บ่อย ให้ cache สั้นๆ ลดการยิง DB
+    return NextResponse.json(categories, {
+      headers: {
+        "Cache-Control":
+          "public, max-age=60, s-maxage=300, stale-while-revalidate=3600",
+      },
+    });
   } catch (error) {
     console.error(error);
 

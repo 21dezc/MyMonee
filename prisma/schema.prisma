@@ -22,6 +22,7 @@ model User {
   sessions      Session[]
   transactions  Transaction[]
   budgets       Budget[]
+  recurring     RecurringTransaction[]
 }
 
 model Account {
@@ -41,6 +42,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 
@@ -51,6 +53,7 @@ model Category {
   createdAt    DateTime        @default(now())
   transactions Transaction[]
   budgets Budget[]
+  recurring RecurringTransaction[]
 }
 
 model Transaction {
@@ -65,6 +68,8 @@ model Transaction {
   categoryId  String
   category    Category        @relation(fields: [categoryId], references: [id])
   user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
 }
 
 enum TransactionType {
@@ -104,4 +109,24 @@ model Budget {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, categoryId, month, year])
+}
+
+model RecurringTransaction {
+  id          String          @id @default(cuid())
+  amount      Decimal         @db.Decimal(12, 2)
+  type        TransactionType
+  description String?
+  dayOfMonth  Int
+  active      Boolean         @default(true)
+  // เดือนล่าสุดที่สร้างรายการแล้ว เช่น "2026-10"
+  lastRunYm   String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  userId      String
+  categoryId  String
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

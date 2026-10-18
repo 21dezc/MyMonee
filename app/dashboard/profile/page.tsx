@@ -1,11 +1,11 @@
-import { auth } from "@/auth";
+import { getSession } from "@/auth";
 import LogoutButton from "./LogoutButton";
 import { redirect } from "next/navigation";
 import EditNameButton from "./EditNameButton";
 import EditEmailButton from "./EditEmailButton";
 
 export default async function ProfilePage() {
-  const session = await auth();
+  const session = await getSession();
 
   if (!session?.user?.id) {
     redirect("/login");

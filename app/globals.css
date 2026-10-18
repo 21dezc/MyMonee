@@ -11,6 +11,7 @@
   --color-expense: #d36f6f;   /* แดง */
   --color-income: #9dd573;    /* เขียว */
   --color-info: #73a7d5;      /* ฟ้า */
+  --color-warn: #d9a03f;      /* เหลือง/ส้ม (แจ้งเตือน) */
 }
 
   .dark {
@@ -24,6 +25,7 @@
   --color-expense: #e88b8b;
   --color-income: #a9df83;
   --color-info: #82b8e5;
+  --color-warn: #e6b45c;
 }
 
 

@@ -72,6 +72,20 @@ export async function POST(request: Request) {
       );
     }
 
+    // ตรวจ Username ซ้ำ
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        username,
+      },
+    });
+
+    if (existingUser) {
+      return NextResponse.json(
+        { error: "Username นี้ถูกใช้งานแล้ว" },
+        { status: 409 }
+      );
+    }
+
     // Hash Password ก่อนบันทึก
     const hashedPassword = await bcrypt.hash(password, 10);
 

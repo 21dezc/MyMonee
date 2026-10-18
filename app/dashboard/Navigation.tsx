@@ -9,6 +9,7 @@ const links = [
   { href: "/dashboard/transactions", label: "รายการ" },
   { href: "/dashboard/add", label: "+ เพิ่มรายการ" },
   { href: "/dashboard/budget", label: "งบประมาณ" },
+  { href: "/dashboard/recurring", label: "รายการประจำ" },
 ];
 
 type NavigationProps = {
@@ -48,8 +49,7 @@ export default function Navigation({ user }: NavigationProps) {
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-2 sm:fl
-      ex-1 sm:justify-end">
+      <div className="flex items-center justify-center gap-2 sm:flex-1 sm:justify-end">
         <ThemeToggle />
         <Link
           href="/dashboard/profile"

@@ -57,10 +57,13 @@ export default function BudgetPage() {
     try {
       setLoading(true);
 
-      const [categoryResponse, budgetResponse] = await Promise.all([
-        fetch("/api/categories"),
-        fetch(`/api/budgets?month=${month}&year=${year}`),
-      ]);
+      // โหลดพร้อมกันทั้งหมด (รายการดึงเฉพาะเดือนที่เลือก)
+      const [categoryResponse, budgetResponse, transactionResponse] =
+        await Promise.all([
+          fetch("/api/categories"),
+          fetch(`/api/budgets?month=${month}&year=${year}`),
+          fetch(`/api/transactions?year=${year}&month=${month}`),
+        ]);
 
       const categoryData = await categoryResponse.json();
 
@@ -71,9 +74,6 @@ export default function BudgetPage() {
       );
 
       setBudgets(budgetData);
-
-      // ดึงรายการทั้งหมด
-      const transactionResponse = await fetch("/api/transactions");
 
       if (transactionResponse.ok) {
         const transactionData = await transactionResponse.json();

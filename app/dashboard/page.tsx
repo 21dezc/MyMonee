@@ -1,28 +1,51 @@
-import { auth } from "@/auth";
+import { getSession } from "@/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import DashboardCharts from "./DashboardCharts";
+import { processRecurring } from "@/lib/recurring";
+import { bangkokParts, ymKey } from "@/lib/date";
 import Link from "next/link";
 
 
 export default async function DashboardPage() {
-  const session = await auth();
+  const session = await getSession();
 
   if (!session?.user?.id) {
     redirect("/login");
   }
 
-  const transactions = await prisma.transaction.findMany({
-    where: {
-      userId: session.user.id,
-    },
-    include: {
-      category: true,
-    },
-    orderBy: {
-      date: "desc",
-    },
-  });
+  const userId = session.user.id;
+
+  // สร้างรายการจากรายการประจำที่ถึงกำหนดก่อน แล้วค่อยดึงข้อมูล
+  await processRecurring(userId);
+
+  // เวลาไทย (บน Vercel เครื่องใช้เวลา UTC)
+  const now = new Date();
+  const today = bangkokParts(now);
+
+  const [transactions, budgets] = await Promise.all([
+    prisma.transaction.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        category: true,
+      },
+      orderBy: {
+        date: "desc",
+      },
+    }),
+    prisma.budget.findMany({
+      where: {
+        userId,
+        month: today.month,
+        year: today.year,
+      },
+      include: {
+        category: true,
+      },
+    }),
+  ]);
 
   // =========================
   // คำนวณยอดรวม
@@ -42,17 +65,10 @@ export default async function DashboardPage() {
   // สรุปข้อมูลเดือนปัจจุบัน
   // =========================
 
-  const now = new Date();
-
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth();
-
   const currentMonthTransactions = transactions.filter((transaction) => {
-    const date = new Date(transaction.date);
+    const date = bangkokParts(new Date(transaction.date));
 
-    return (
-      date.getFullYear() === currentYear && date.getMonth() === currentMonth
-    );
+    return date.year === today.year && date.month === today.month;
   });
 
   const monthlyIncome = currentMonthTransactions
@@ -82,12 +98,9 @@ export default async function DashboardPage() {
   > = {};
 
   transactions.forEach((transaction) => {
-    const date = new Date(transaction.date);
+    const { year, month } = bangkokParts(new Date(transaction.date));
 
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-
-    const key = `${year}-${String(month).padStart(2, "0")}`;
+    const key = ymKey(year, month);
 
     if (!monthlyData[key]) {
       monthlyData[key] = {
@@ -137,6 +150,38 @@ export default async function DashboardPage() {
     }))
     .sort((a, b) => b.value - a.value);
 
+  // =========================
+  // แจ้งเตือนงบประมาณเดือนนี้ (ใช้ตั้งแต่ 80% ขึ้นไป)
+  // =========================
+
+  const spentByCategory: Record<string, number> = {};
+
+  currentMonthTransactions.forEach((transaction) => {
+    if (transaction.type !== "EXPENSE") {
+      return;
+    }
+
+    spentByCategory[transaction.categoryId] =
+      (spentByCategory[transaction.categoryId] ?? 0) +
+      Number(transaction.amount);
+  });
+
+  const budgetAlerts = budgets
+    .map((budget) => {
+      const limit = Number(budget.amount);
+      const spent = spentByCategory[budget.categoryId] ?? 0;
+
+      return {
+        id: budget.id,
+        name: budget.category.name,
+        limit,
+        spent,
+        percent: limit > 0 ? (spent / limit) * 100 : 0,
+      };
+    })
+    .filter((item) => item.percent >= 80)
+    .sort((a, b) => b.percent - a.percent);
+
   const money = (value: number) =>
     value.toLocaleString("th-TH", {
       minimumFractionDigits: 2,
@@ -182,6 +227,69 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
+      {/* แจ้งเตือนงบประมาณ */}
+      {budgetAlerts.length > 0 && (
+        <section className="card mt-6 p-6">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">แจ้งเตือนงบประมาณ</h2>
+              <p className="mt-1 text-xs text-muted">
+                หมวดที่ใช้ไปตั้งแต่ 80% ของงบเดือนนี้
+              </p>
+            </div>
+
+            <Link
+              href="/dashboard/budget"
+              className="text-sm text-muted hover:text-ink"
+            >
+              จัดการงบ →
+            </Link>
+          </div>
+
+          <div className="mt-4 space-y-4">
+            {budgetAlerts.map((item) => {
+              const over = item.percent >= 100;
+
+              return (
+                <div key={item.id}>
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                    <span className="flex items-center gap-2">
+                      {item.name}
+
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs ${
+                          over
+                            ? "bg-expense/10 text-expense"
+                            : "bg-warn/10 text-warn"
+                        }`}
+                      >
+                        {over
+                          ? `เกินงบ ฿${money(item.spent - item.limit)}`
+                          : "ใกล้เต็มงบ"}
+                      </span>
+                    </span>
+
+                    <span className="text-xs text-muted">
+                      ฿{money(item.spent)} / ฿{money(item.limit)} (
+                      {item.percent.toFixed(0)}%)
+                    </span>
+                  </div>
+
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-line">
+                    <div
+                      className={`h-full rounded-full transition-all ${
+                        over ? "bg-expense" : "bg-warn"
+                      }`}
+                      style={{ width: `${Math.min(item.percent, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {/* Chart */}
       {chartData.length > 0 && (
         <DashboardCharts data={chartData} categoryData={categoryData} />
@@ -201,6 +309,7 @@ export default async function DashboardPage() {
             {now.toLocaleDateString("th-TH", {
               month: "long",
               year: "numeric",
+              timeZone: "Asia/Bangkok",
             })}
           </span>
         </div>
@@ -271,7 +380,9 @@ export default async function DashboardPage() {
                     {transaction.description || "ไม่มีรายละเอียด"}
                   </p>
                   <p className="mt-0.5 text-xs text-faint">
-                    {new Date(transaction.date).toLocaleDateString("th-TH")}
+                    {new Date(transaction.date).toLocaleDateString("th-TH", {
+                      timeZone: "Asia/Bangkok",
+                    })}
                   </p>
                 </div>
 

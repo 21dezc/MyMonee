@@ -1,13 +1,26 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // error ที่ส่งกลับมาจาก GitHub login (เช่น อีเมลซ้ำกับบัญชีที่สมัครด้วย username)
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get("error");
+
+    if (!code) return;
+
+    setError(
+      code === "OAuthAccountNotLinked"
+        ? "อีเมลนี้ถูกใช้กับบัญชีอื่นอยู่แล้ว กรุณาเข้าสู่ระบบด้วย Username / Password ของบัญชีนั้น"
+        : "เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"
+    );
+  }, []);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -21,8 +34,6 @@ export default function LoginPage() {
       redirect: false,
     });
 
-
-    console.log("LOGIN RESULT:", result);
 
     setLoading(false);
 
