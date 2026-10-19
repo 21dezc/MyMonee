@@ -135,16 +135,7 @@ export default function RegisterPage() {
               required
             />
 
-            <ul className="mt-2 space-y-1 text-xs">
-              {passwordRules.map((r) => (
-                <li
-                  key={r.text}
-                  className={r.ok ? "text-income" : "text-muted"}
-                >
-                  {r.ok ? "✓" : "○"} {r.text}
-                </li>
-              ))}
-            </ul>
+            
 
             {passwordHasInvalidChar && (
               <p className="mt-2 text-xs text-expense">
@@ -154,9 +145,7 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="label">
-              ยืนยัน Password
-            </label>
+            
 
             <input
               type="password"

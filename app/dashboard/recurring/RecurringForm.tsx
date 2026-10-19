@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  FREQUENCY_OPTIONS,
+  frequencyLabel,
+  type Frequency,
+} from "@/lib/recurrence";
 
 type Category = {
   id: string;
@@ -9,21 +14,58 @@ type Category = {
   type: "INCOME" | "EXPENSE";
 };
 
+// ค่าเริ่มต้นตอนปักหมุดจากรายการที่มีอยู่แล้ว
+export type RecurringInitial = {
+  type: "INCOME" | "EXPENSE";
+  categoryId: string;
+  amount: string;
+  description: string;
+  startDate: string; // YYYY-MM-DD
+  fromTransactionId: string;
+};
+
+type LimitMode = "NONE" | "INSTALLMENTS" | "END_DATE";
+
 export default function RecurringForm({
   categories,
+  today,
+  initial,
 }: {
   categories: Category[];
+  today: string; // YYYY-MM-DD (เวลาไทย)
+  initial?: RecurringInitial;
 }) {
   const router = useRouter();
 
-  const [type, setType] = useState<"INCOME" | "EXPENSE">("EXPENSE");
-  const [categoryId, setCategoryId] = useState("");
-  const [amount, setAmount] = useState("");
-  const [description, setDescription] = useState("");
-  const [dayOfMonth, setDayOfMonth] = useState("1");
+  const [type, setType] = useState<"INCOME" | "EXPENSE">(
+    initial?.type ?? "EXPENSE"
+  );
+  const [categoryId, setCategoryId] = useState(initial?.categoryId ?? "");
+  const [amount, setAmount] = useState(initial?.amount ?? "");
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [frequency, setFrequency] = useState<Frequency>("MONTHLY");
+  const [startDate, setStartDate] = useState(initial?.startDate ?? today);
+
+  const [limitMode, setLimitMode] = useState<LimitMode>("NONE");
+  const [installments, setInstallments] = useState("12");
+  const [endDate, setEndDate] = useState("");
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // ข้อความอธิบายว่าจะเกิดขึ้นเมื่อไหร่ (อิงวันเริ่มที่เลือก)
+  const startAsDate = /^\d{4}-\d{2}-\d{2}$/.test(startDate)
+    ? new Date(`${startDate}T00:00:00Z`)
+    : null;
+
+  const scheduleHint = startAsDate
+    ? frequencyLabel(frequency, startAsDate)
+    : "";
+
+  const showMonthEndHint =
+    startAsDate !== null &&
+    startAsDate.getUTCDate() > 28 &&
+    (frequency === "MONTHLY" || frequency === "YEARLY");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -31,7 +73,6 @@ export default function RecurringForm({
     setError("");
 
     const numericAmount = Number(amount);
-    const day = Number(dayOfMonth);
 
     if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
       setError("จำนวนเงินต้องเป็นตัวเลขที่มากกว่า 0");
@@ -43,9 +84,35 @@ export default function RecurringForm({
       return;
     }
 
-    if (!Number.isInteger(day) || day < 1 || day > 31) {
-      setError("วันที่ต้องอยู่ระหว่าง 1-31");
+    if (!startAsDate) {
+      setError("กรุณาเลือกวันเริ่ม");
       return;
+    }
+
+    if (startDate < today) {
+      setError("วันเริ่มต้องเป็นวันนี้หรืออนาคต");
+      return;
+    }
+
+    if (limitMode === "INSTALLMENTS") {
+      const n = Number(installments);
+
+      if (!Number.isInteger(n) || n < 1 || n > 360) {
+        setError("จำนวนงวดต้องเป็นจำนวนเต็ม 1-360");
+        return;
+      }
+    }
+
+    if (limitMode === "END_DATE") {
+      if (!endDate) {
+        setError("กรุณาเลือกวันสิ้นสุด");
+        return;
+      }
+
+      if (endDate < startDate) {
+        setError("วันสิ้นสุดต้องไม่ก่อนวันเริ่ม");
+        return;
+      }
     }
 
     setLoading(true);
@@ -59,7 +126,12 @@ export default function RecurringForm({
           categoryId,
           amount: numericAmount,
           description: description.trim(),
-          dayOfMonth: day,
+          frequency,
+          startDate,
+          installments:
+            limitMode === "INSTALLMENTS" ? Number(installments) : null,
+          endDate: limitMode === "END_DATE" ? endDate : null,
+          fromTransactionId: initial?.fromTransactionId,
         }),
       });
 
@@ -73,7 +145,10 @@ export default function RecurringForm({
       setAmount("");
       setDescription("");
       setCategoryId("");
+      setLimitMode("NONE");
 
+      // ล้าง ?from=... ออกจาก URL แล้วโหลดรายการใหม่
+      router.replace("/dashboard/recurring");
       router.refresh();
     } catch {
       setError("ไม่สามารถเชื่อมต่อ Server ได้");
@@ -161,7 +236,7 @@ export default function RecurringForm({
         </div>
 
         {/* รายละเอียด */}
-        <div>
+        <div className="md:col-span-2">
           <label className="label">รายละเอียด</label>
 
           <input
@@ -174,26 +249,105 @@ export default function RecurringForm({
           />
         </div>
 
-        {/* วันที่ของเดือน */}
+        {/* ความถี่ */}
         <div>
-          <label className="label">เกิดขึ้นทุกวันที่</label>
+          <label className="label">ความถี่</label>
+
+          <select
+            value={frequency}
+            onChange={(e) => setFrequency(e.target.value as Frequency)}
+            className="field"
+          >
+            {FREQUENCY_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* วันเริ่ม */}
+        <div>
+          <label className="label">วันเริ่ม (งวดแรก)</label>
 
           <input
-            type="number"
-            min="1"
-            max="31"
-            step="1"
-            value={dayOfMonth}
-            onChange={(e) => setDayOfMonth(e.target.value)}
+            type="date"
+            min={today}
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
             className="field"
             required
           />
-
-          <p className="mt-1 text-xs text-faint">
-            เดือนที่ไม่มีวันที่นั้น (เช่น 31 ในเดือนกุมภาพันธ์)
-            ระบบจะใช้วันสุดท้ายของเดือนแทน
-          </p>
         </div>
+      </div>
+
+      {scheduleHint && (
+        <p className="text-xs text-muted">
+          จะสร้างรายการ: {scheduleHint}
+          {showMonthEndHint &&
+            " (เดือนที่ไม่มีวันที่นั้น เช่น 31 ในเดือนกุมภาพันธ์ ระบบจะใช้วันสุดท้ายของเดือนแทน)"}
+        </p>
+      )}
+
+      {/* การสิ้นสุด */}
+      <div>
+        <label className="label">การสิ้นสุด</label>
+
+        <div className="grid grid-cols-3 gap-2">
+          {(
+            [
+              ["NONE", "ไม่มีกำหนด"],
+              ["INSTALLMENTS", "จำนวนงวด"],
+              ["END_DATE", "วันสิ้นสุด"],
+            ] as const
+          ).map(([mode, label]) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => setLimitMode(mode)}
+              className={`rounded-xl border border-nav p-2.5 text-sm transition-colors ${
+                limitMode === mode ? "bg-line text-ink" : "bg-paper text-muted"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {limitMode === "INSTALLMENTS" && (
+          <div className="mt-3">
+            <input
+              type="number"
+              min="1"
+              max="360"
+              step="1"
+              value={installments}
+              onChange={(e) => setInstallments(e.target.value)}
+              className="field"
+            />
+
+            <p className="mt-1 text-xs text-faint">
+              เช่น ผ่อน 12 เดือน = 12 งวด (นับจากงวดแรกที่ระบบจะสร้าง)
+              ครบแล้วระบบจะหยุดเอง
+            </p>
+          </div>
+        )}
+
+        {limitMode === "END_DATE" && (
+          <div className="mt-3">
+            <input
+              type="date"
+              min={startDate || today}
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="field"
+            />
+
+            <p className="mt-1 text-xs text-faint">
+              งวดที่ตรงหรือก่อนวันสิ้นสุดจะถูกสร้าง งวดหลังจากนั้นระบบจะไม่สร้างให้
+            </p>
+          </div>
+        )}
       </div>
 
       {error && (

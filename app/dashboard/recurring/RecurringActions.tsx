@@ -6,9 +6,11 @@ import { useRouter } from "next/navigation";
 export default function RecurringActions({
   id,
   active,
+  finished = false,
 }: {
   id: string;
   active: boolean;
+  finished?: boolean;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -69,14 +71,17 @@ export default function RecurringActions({
 
   return (
     <div className="flex items-center gap-2">
-      <button
-        type="button"
-        onClick={toggle}
-        disabled={busy}
-        className="chip chip-info disabled:opacity-50"
-      >
-        {active ? "ปิด" : "เปิด"}
-      </button>
+      {/* รายการที่ครบกำหนดแล้วเปิดใหม่ไม่ได้ จึงไม่แสดงปุ่มเปิด/ปิด */}
+      {!finished && (
+        <button
+          type="button"
+          onClick={toggle}
+          disabled={busy}
+          className="chip chip-info disabled:opacity-50"
+        >
+          {active ? "ปิดใช้งาน" : "เปิดใช้งาน"}
+        </button>
+      )}
 
       <button
         type="button"

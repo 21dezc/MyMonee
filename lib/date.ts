@@ -52,3 +52,32 @@ export function formatYmd(date: Date) {
 
   return `${ymKey(year, month)}-${String(day).padStart(2, "0")}`;
 }
+
+// ตัดเวลาทิ้ง เหลือ 00:00 UTC ของ "วันที่ตามเวลาไทย" (ใช้เก็บ/เทียบวันที่ของรายการประจำ)
+export function bangkokDateOnly(date: Date) {
+  const { year, month, day } = bangkokParts(date);
+
+  return new Date(Date.UTC(year, month - 1, day));
+}
+
+// วันนี้ (เวลาไทย) ในรูป 00:00 UTC
+export function todayBangkok() {
+  return bangkokDateOnly(new Date());
+}
+
+// "2026-10-19" -> Date (00:00 UTC) ถ้ารูปแบบหรือวันที่ไม่ถูกต้องคืน null
+export function parseYmd(value: unknown): Date | null {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return null;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+
+  const valid =
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day;
+
+  return valid ? date : null;
+}

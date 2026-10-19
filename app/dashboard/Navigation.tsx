@@ -9,7 +9,6 @@ const links = [
   { href: "/dashboard/transactions", label: "รายการ" },
   { href: "/dashboard/add", label: "+ เพิ่มรายการ" },
   { href: "/dashboard/budget", label: "งบประมาณ" },
-  { href: "/dashboard/recurring", label: "รายการประจำ" },
 ];
 
 type NavigationProps = {
@@ -75,4 +74,4 @@ export default function Navigation({ user }: NavigationProps) {
       </div>
     </nav>
   );
-}
+}

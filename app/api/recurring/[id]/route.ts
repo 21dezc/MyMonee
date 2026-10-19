@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
-import { initialLastRunYm } from "@/lib/recurring";
+import { todayBangkok } from "@/lib/date";
+import { skipToDate } from "@/lib/recurrence";
 
 type Params = {
   params: Promise<{
@@ -42,16 +43,45 @@ export async function PATCH(request: Request, { params }: Params) {
       );
     }
 
-    await prisma.recurringTransaction.update({
-      where: { id },
-      data: {
-        active: body.active,
-        // ตอนเปิดใหม่ ไม่สร้างย้อนหลังช่วงที่ปิดไว้
-        ...(body.active && !rule.active
-          ? { lastRunYm: initialLastRunYm(rule.dayOfMonth) }
-          : {}),
-      },
-    });
+    // รายการที่ครบงวด/ครบกำหนดแล้วเปิดใหม่ไม่ได้ (ให้สร้างใหม่แทน)
+    if (rule.finished) {
+      return NextResponse.json(
+        { error: "รายการนี้ครบกำหนดแล้ว กรุณาสร้างรายการประจำใหม่" },
+        { status: 400 }
+      );
+    }
+
+    // ปิด -> เปิดใหม่: ข้ามงวดที่ผ่านไปตอนปิดอยู่ (ไม่สร้างย้อนหลัง) เริ่มที่งวดถัดไปที่ยังไม่ถึง
+    if (body.active && !rule.active) {
+      const next = skipToDate(
+        rule.nextRunDate,
+        rule.startDate,
+        rule.frequency,
+        todayBangkok()
+      );
+
+      if (rule.endDate !== null && next > rule.endDate) {
+        await prisma.recurringTransaction.update({
+          where: { id },
+          data: { nextRunDate: next, finished: true, active: false },
+        });
+
+        return NextResponse.json(
+          { error: "เลยวันสิ้นสุดแล้ว รายการนี้ครบกำหนด" },
+          { status: 400 }
+        );
+      }
+
+      await prisma.recurringTransaction.update({
+        where: { id },
+        data: { active: true, nextRunDate: next },
+      });
+    } else {
+      await prisma.recurringTransaction.update({
+        where: { id },
+        data: { active: body.active },
+      });
+    }
 
     return NextResponse.json({ message: "อัปเดตสำเร็จ" });
   } catch (error) {

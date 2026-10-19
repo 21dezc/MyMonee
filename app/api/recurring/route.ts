@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
-import { initialLastRunYm } from "@/lib/recurring";
+import { parseYmd, todayBangkok } from "@/lib/date";
 
 const MAX_RULES = 50;
+const MAX_INSTALLMENTS = 360;
+const FREQUENCIES = ["WEEKLY", "MONTHLY", "YEARLY"] as const;
+
+function bad(message: string) {
+  return NextResponse.json({ error: message }, { status: 400 });
+}
 
 // ดูรายการประจำทั้งหมดของผู้ใช้
 export async function GET() {
@@ -20,7 +26,7 @@ export async function GET() {
     const rules = await prisma.recurringTransaction.findMany({
       where: { userId: session.user.id },
       include: { category: true },
-      orderBy: [{ dayOfMonth: "asc" }, { createdAt: "asc" }],
+      orderBy: [{ nextRunDate: "asc" }, { createdAt: "asc" }],
     });
 
     return NextResponse.json(rules);
@@ -47,7 +53,17 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { amount, type, description, dayOfMonth, categoryId } = body;
+    const {
+      amount,
+      type,
+      description,
+      frequency,
+      startDate,
+      endDate,
+      installments,
+      categoryId,
+      fromTransactionId,
+    } = body;
 
     const numericAmount = Number(amount);
 
@@ -59,33 +75,57 @@ export async function POST(request: Request) {
       numericAmount <= 0 ||
       numericAmount >= 10_000_000_000
     ) {
-      return NextResponse.json(
-        { error: "จำนวนเงินต้องเป็นตัวเลขที่มากกว่า 0" },
-        { status: 400 }
-      );
+      return bad("จำนวนเงินต้องเป็นตัวเลขที่มากกว่า 0");
     }
 
     if (type !== "INCOME" && type !== "EXPENSE") {
-      return NextResponse.json(
-        { error: "ประเภทข้อมูลไม่ถูกต้อง" },
-        { status: 400 }
-      );
+      return bad("ประเภทต้องเป็นรายรับหรือรายจ่าย");
     }
 
-    const day = Number(dayOfMonth);
+    const freq = frequency ?? "MONTHLY";
 
-    if (!Number.isInteger(day) || day < 1 || day > 31) {
-      return NextResponse.json(
-        { error: "วันที่ต้องอยู่ระหว่าง 1-31" },
-        { status: 400 }
-      );
+    if (!FREQUENCIES.includes(freq)) {
+      return bad("ความถี่ไม่ถูกต้อง");
+    }
+
+    const start = parseYmd(startDate);
+
+    if (!start) {
+      return bad("กรุณาเลือกวันเริ่ม");
+    }
+
+    if (start < todayBangkok()) {
+      return bad("วันเริ่มต้องเป็นวันนี้หรืออนาคต");
+    }
+
+    const hasEnd = endDate !== undefined && endDate !== null && endDate !== "";
+    const hasInstallments =
+      installments !== undefined && installments !== null && installments !== "";
+
+    if (hasEnd && hasInstallments) {
+      return bad("กำหนดสิ้นสุดได้อย่างเดียว: จำนวนงวด หรือ วันสิ้นสุด");
+    }
+
+    let end: Date | null = null;
+    let count: number | null = null;
+
+    if (hasEnd) {
+      end = parseYmd(endDate);
+
+      if (!end) return bad("วันสิ้นสุดไม่ถูกต้อง");
+      if (end < start) return bad("วันสิ้นสุดต้องไม่ก่อนวันเริ่ม");
+    }
+
+    if (hasInstallments) {
+      count = Number(installments);
+
+      if (!Number.isInteger(count) || count < 1 || count > MAX_INSTALLMENTS) {
+        return bad(`จำนวนงวดต้องเป็นจำนวนเต็ม 1-${MAX_INSTALLMENTS}`);
+      }
     }
 
     if (!categoryId || typeof categoryId !== "string") {
-      return NextResponse.json(
-        { error: "กรุณาเลือกหมวดหมู่" },
-        { status: 400 }
-      );
+      return bad("กรุณาเลือกหมวดหมู่");
     }
 
     if (
@@ -93,20 +133,14 @@ export async function POST(request: Request) {
       description !== null &&
       typeof description !== "string"
     ) {
-      return NextResponse.json(
-        { error: "รายละเอียดไม่ถูกต้อง" },
-        { status: 400 }
-      );
+      return bad("รายละเอียดไม่ถูกต้อง");
     }
 
     if (typeof description === "string" && description.length > 200) {
-      return NextResponse.json(
-        { error: "รายละเอียดต้องไม่เกิน 200 ตัวอักษร" },
-        { status: 400 }
-      );
+      return bad("รายละเอียดต้องไม่เกิน 200 ตัวอักษร");
     }
 
-    const [category, count] = await Promise.all([
+    const [category, ruleCount] = await Promise.all([
       prisma.category.findFirst({ where: { id: categoryId, type } }),
       prisma.recurringTransaction.count({
         where: { userId: session.user.id },
@@ -114,30 +148,43 @@ export async function POST(request: Request) {
     ]);
 
     if (!category) {
-      return NextResponse.json(
-        { error: "หมวดหมู่ไม่ถูกต้องหรือไม่ตรงกับประเภทรายการ" },
-        { status: 400 }
-      );
+      return bad("หมวดหมู่ไม่ถูกต้องหรือไม่ตรงกับประเภท");
     }
 
-    if (count >= MAX_RULES) {
-      return NextResponse.json(
-        { error: `สร้างรายการประจำได้สูงสุด ${MAX_RULES} รายการ` },
-        { status: 400 }
-      );
+    if (ruleCount >= MAX_RULES) {
+      return bad(`สร้างรายการประจำได้สูงสุด ${MAX_RULES} รายการ`);
     }
 
-    const rule = await prisma.recurringTransaction.create({
-      data: {
-        amount: numericAmount,
-        type,
-        description:
-          typeof description === "string" ? description.trim() || null : null,
-        dayOfMonth: day,
-        lastRunYm: initialLastRunYm(day),
-        userId: session.user.id,
-        categoryId,
-      },
+    const rule = await prisma.$transaction(async (tx) => {
+      const created = await tx.recurringTransaction.create({
+        data: {
+          amount: numericAmount,
+          type,
+          description:
+            typeof description === "string" ? description.trim() || null : null,
+          frequency: freq,
+          startDate: start,
+          nextRunDate: start,
+          endDate: end,
+          installments: count,
+          userId: session.user.id,
+          categoryId,
+        },
+      });
+
+      // ปักหมุดจากรายการเดิม: ผูกรายการต้นทางให้ขึ้นป้าย "ประจำ" (เฉพาะรายการของตัวเองที่ยังไม่ผูก)
+      if (typeof fromTransactionId === "string" && fromTransactionId) {
+        await tx.transaction.updateMany({
+          where: {
+            id: fromTransactionId,
+            userId: session.user.id,
+            recurringId: null,
+          },
+          data: { recurringId: created.id },
+        });
+      }
+
+      return created;
     });
 
     return NextResponse.json(rule, { status: 201 });

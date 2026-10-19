@@ -2,6 +2,7 @@ import { getSession } from "@/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import DashboardCharts from "./DashboardCharts";
+import RecurringCard from "./RecurringCard";
 import { processRecurring } from "@/lib/recurring";
 import { bangkokParts, ymKey } from "@/lib/date";
 import Link from "next/link";
@@ -23,7 +24,7 @@ export default async function DashboardPage() {
   const now = new Date();
   const today = bangkokParts(now);
 
-  const [transactions, budgets] = await Promise.all([
+  const [transactions, budgets, recurringRules] = await Promise.all([
     prisma.transaction.findMany({
       where: {
         userId,
@@ -44,6 +45,11 @@ export default async function DashboardPage() {
       include: {
         category: true,
       },
+    }),
+    prisma.recurringTransaction.findMany({
+      where: { userId, active: true, finished: false },
+      include: { category: true },
+      orderBy: { nextRunDate: "asc" },
     }),
   ]);
 
@@ -290,6 +296,19 @@ export default async function DashboardPage() {
         </section>
       )}
 
+      {/* รายการประจำ */}
+      <RecurringCard
+        rules={recurringRules.map((rule) => ({
+          id: rule.id,
+          description: rule.description,
+          categoryName: rule.category.name,
+          type: rule.type,
+          amount: Number(rule.amount),
+          frequency: rule.frequency,
+          nextRunDate: rule.nextRunDate,
+        }))}
+      />
+
       {/* Chart */}
       {chartData.length > 0 && (
         <DashboardCharts data={chartData} categoryData={categoryData} />
@@ -376,8 +395,14 @@ export default async function DashboardPage() {
                 className="flex items-center justify-between border-b border-line py-4 last:border-b-0"
               >
                 <div>
-                  <p className="text-sm">
+                  <p className="flex flex-wrap items-center gap-2 text-sm">
                     {transaction.description || "ไม่มีรายละเอียด"}
+
+                    {transaction.recurringId && (
+                      <span className="rounded-full bg-info/10 px-2 py-0.5 text-xs text-info">
+                        📌 ประจำ
+                      </span>
+                    )}
                   </p>
                   <p className="mt-0.5 text-xs text-faint">
                     {new Date(transaction.date).toLocaleDateString("th-TH", {

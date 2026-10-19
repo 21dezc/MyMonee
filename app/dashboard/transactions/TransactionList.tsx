@@ -16,6 +16,7 @@ type Transaction = {
   description: string | null;
   date: string;
   categoryId: string;
+  recurringId: string | null;
   category: {
     id: string;
     name: string;
@@ -128,11 +129,17 @@ export default function TransactionList({
             {transactions.map((transaction) => (
               <div
                 key={transaction.id}
-                className="flex items-center justify-between gap-3 border-b border-line py-4 last:border-b-0"
+                className="flex flex-wrap items-center justify-between gap-3 border-b border-line py-4 last:border-b-0"
               >
                 <div>
-                  <p className="text-sm">
+                  <p className="flex flex-wrap items-center gap-2 text-sm">
                     {transaction.description || "ไม่มีรายละเอียด"}
+
+                    {transaction.recurringId && (
+                      <span className="rounded-full bg-info/10 px-2 py-0.5 text-xs text-info">
+                        📌 ประจำ
+                      </span>
+                    )}
                   </p>
 
                   <div className="mt-0.5 flex gap-2 text-xs text-faint">
@@ -149,7 +156,7 @@ export default function TransactionList({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                   <p
                     className={`text-sm font-medium ${
                       transaction.type === "INCOME"
@@ -160,6 +167,17 @@ export default function TransactionList({
                     {transaction.type === "INCOME" ? "+" : "-"}฿
                     {money(Number(transaction.amount))}
                   </p>
+
+                  {/* ปักหมุดเป็นรายการประจำ (เฉพาะรายการที่ยังไม่ได้เป็นประจำ) */}
+                  {!transaction.recurringId && (
+                    <Link
+                      href={`/dashboard/recurring?from=${transaction.id}`}
+                      className="chip chip-info"
+                      title="ตั้งรายการนี้ให้เกิดซ้ำอัตโนมัติ"
+                    >
+                      📌 ตั้งเป็นประจำ
+                    </Link>
+                  )}
 
                   <Link
                     href={`/dashboard/transactions/${transaction.id}/edit`}
