@@ -1,29 +1,34 @@
 import { cache } from "react";
 import NextAuth from "next-auth";
-import GitHub from "next-auth/providers/github";
-import Credentials from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@auth/prisma-adapter";
+import GitHub from "next-auth/providers/github";  // login ด้วย GitHub
+import Credentials from "next-auth/providers/credentials";  // login ด้วย user/pass
+import { PrismaAdapter } from "@auth/prisma-adapter";  // เชื่อม NextAuth กับ DB
 import prisma from "@/lib/prisma";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcryptjs";     // เปรียบ password
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+export const { handlers, signIn, signOut, auth } = NextAuth({  // ให้ NextAuth เก็บ session ลง DB
+  adapter: PrismaAdapter(prisma),  
+  //จัดการ APIระบบAuthentication เช่น การเรียก Callback จาก GitHub
+  //auth ตรวจสอบ Session ข้อมูลผู้ใช้ที่ผ่านการยืนยันตัวตนแล้ว
+
 
   session: {
-    strategy: "jwt",
+    strategy: "jwt",     // ใช้ JWT เก็บ session (ไม่เก็บใน DB)
   },
 
-  // ให้แสดง error ของการ login (เช่น อีเมลซ้ำกับบัญชีอื่น) ที่หน้า /login
+  // แสดง error การ login (เช่น เมลซ้ำ) ที่หน้าlogin
   pages: {
-    error: "/login",
+    error: "/login",    
   },
 
+  
   providers: [
-    GitHub({
+    // login ด้วย GitHub OAuth
+    GitHub({   
       clientId: process.env.AUTH_GITHUB_ID,
       clientSecret: process.env.AUTH_GITHUB_SECRET,
     }),
-
+    // login ด้วย userpass
     Credentials({
       credentials: {
         username: {},
@@ -32,22 +37,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) {
-          return null;
+          return null;     // หา user จาก DB ด้วย username
         }
 
         const user = await prisma.user.findUnique({
           where: {
             username: credentials.username as string,
-          },
+          },      
         });
 
         if (!user || !user.password) {
-          return null;
+          return null;    //เช็คว่า user มีอยู่ไหม
         }
 
         const passwordMatch = await bcrypt.compare(
           credentials.password as string,
-          user.password
+          user.password      // เทียบ pass ด้วย bcrypt
         );
 
         if (!passwordMatch) {
@@ -64,7 +69,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
 
     callbacks: {
-      async jwt({ token, user }) {
+      async jwt({ token, user }) {   // jwt() เพิ่มid เข้าtoken ตอนlogin
         if (user) {
           token.id = user.id;
           token.picture = user.image;
@@ -73,7 +78,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return token;
       },
 
-      async session({ session, token }) {
+      async session({ session, token }) {   //ดึงข้อมูลuser จากDB แล้วแปะลงsession
         if (session.user && token.id) {
           const dbUser = await prisma.user.findUnique({
             where: {
@@ -94,6 +99,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
 });
 
-// ใช้ใน Server Component (layout / page) แทน auth()
-// cache() ทำให้เรียกซ้ำใน request เดียวกันแล้วยิง DB แค่ครั้งเดียว
+// getSession → ใช้ใน Server Component แทน auth()
+// cache() ป้องกันยิง DB ซ้ำใน request เดียวกัน
 export const getSession = cache(auth);
