@@ -167,7 +167,7 @@ export async function POST(request: Request) {
           nextRunDate: start,
           endDate: end,
           installments: count,
-          userId: session.user.id,
+          userId: session.user!.id!,
           categoryId,
         },
       });
@@ -177,7 +177,7 @@ export async function POST(request: Request) {
         await tx.transaction.updateMany({
           where: {
             id: fromTransactionId,
-            userId: session.user.id,
+            userId: session.user!.id!,
             recurringId: null,
           },
           data: { recurringId: created.id },
